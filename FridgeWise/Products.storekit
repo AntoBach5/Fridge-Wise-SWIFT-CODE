@@ -1,0 +1,161 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "es_AR",
+        "policyText" : "",
+        "policyURL" : "https://fridgewise.app/terminos"
+      }
+    ]
+  },
+  "identifier" : "F81D2A70",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "600001",
+      "localizations" : [
+        {
+          "description" : "500 puntos para canjear dentro de la app.",
+          "displayName" : "Puñado de puntos",
+          "locale" : "es_AR"
+        }
+      ],
+      "productID" : "com.fridgewise.points.small",
+      "referenceName" : "Puntos — Puñado (500)",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "2.99",
+      "familyShareable" : false,
+      "internalID" : "600002",
+      "localizations" : [
+        {
+          "description" : "1500 puntos, con 10% extra incluido.",
+          "displayName" : "Bolsa de puntos",
+          "locale" : "es_AR"
+        }
+      ],
+      "productID" : "com.fridgewise.points.medium",
+      "referenceName" : "Puntos — Bolsa (1500)",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "6.99",
+      "familyShareable" : false,
+      "internalID" : "600003",
+      "localizations" : [
+        {
+          "description" : "4000 puntos, con 25% extra incluido.",
+          "displayName" : "Despensa de puntos",
+          "locale" : "es_AR"
+        }
+      ],
+      "productID" : "com.fridgewise.points.large",
+      "referenceName" : "Puntos — Despensa (4000)",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "14.99",
+      "familyShareable" : false,
+      "internalID" : "600004",
+      "localizations" : [
+        {
+          "description" : "10000 puntos, con 40% extra incluido.",
+          "displayName" : "Cosecha de puntos",
+          "locale" : "es_AR"
+        }
+      ],
+      "productID" : "com.fridgewise.points.huge",
+      "referenceName" : "Puntos — Cosecha (10000)",
+      "type" : "Consumable"
+    }
+  ],
+  "settings" : {
+    "_askToBuyEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_failTransactionsEnabled" : false,
+    "_locale" : "es_AR",
+    "_storefront" : "ARG",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "500001",
+      "localizations" : [
+
+      ],
+      "name" : "Fridge Wise Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "3.99",
+          "familyShareable" : true,
+          "groupNumber" : 1,
+          "internalID" : "500101",
+          "introductoryOffer" : {
+            "internalID" : "500901",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "Escaneos y recetas sin límite, cero publicidad y modo cocina completo.",
+              "displayName" : "Premium Mensual",
+              "locale" : "es_AR"
+            }
+          ],
+          "productID" : "com.fridgewise.premium.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Premium Mensual",
+          "subscriptionGroupID" : "500001",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "29.99",
+          "familyShareable" : true,
+          "groupNumber" : 1,
+          "internalID" : "500102",
+          "introductoryOffer" : {
+            "internalID" : "500902",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "Todo Premium durante un año, al mejor precio por mes.",
+              "displayName" : "Premium Anual",
+              "locale" : "es_AR"
+            }
+          ],
+          "productID" : "com.fridgewise.premium.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Premium Anual",
+          "subscriptionGroupID" : "500001",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}
