@@ -3,7 +3,7 @@
 //  FridgeWise
 //
 //  Política de anuncios. El SDK real (AdMob u otro) se enchufa en
-//  `AdProviding`; lo que vive acá son las REGLAS, que es lo que hay que
+//  `AdProviding`; lo que vive aquí son las REGLAS, que es lo que hay que
 //  defender en el review y ante el usuario.
 //
 //  Reglas duras — ninguna es negociable por producto:
@@ -25,7 +25,7 @@ import SwiftUI
 protocol AdProviding: Sendable {
     /// `true` si hay inventario listo para mostrar.
     func hasNativeAd() async -> Bool
-    /// Personalizado sólo si ATT lo autorizó.
+    /// Personalizado solo si ATT lo autorizó.
     func requestNativeAd(personalized: Bool) async -> NativeAdPayload?
 }
 
@@ -100,7 +100,7 @@ final class AdCoordinator {
 
     // MARK: Intersticiales
 
-    /// Sólo en transiciones naturales (terminar de cocinar, cerrar una receta),
+    /// Solo en transiciones naturales (terminar de cocinar, cerrar una receta),
     /// nunca al abrir la app ni en medio de una tarea.
     func canShowInterstitial() -> Bool {
         guard canShowAds else { return false }
@@ -123,7 +123,7 @@ struct HouseAdProvider: AdProviding {
 
     func requestNativeAd(personalized: Bool) async -> NativeAdPayload? {
         NativeAdPayload(
-            headline: String(localized: "Cociná sin interrupciones"),
+            headline: String(localized: "Cocina sin interrupciones"),
             body: String(localized: "Premium saca los anuncios y te da escaneos y recetas sin límite."),
             advertiser: String(localized: "Fridge Wise"),
             callToAction: String(localized: "Ver Premium"),

@@ -33,7 +33,7 @@ struct CommunityAuthor: Identifiable, Hashable, Codable, Sendable {
 enum ModerationState: String, Codable, Sendable {
     /// Visible normalmente.
     case published
-    /// El filtro automático lo marcó; visible sólo para su autor mientras se revisa.
+    /// El filtro automático lo marcó; visible solo para su autor mientras se revisa.
     case underReview
     /// Retirado por moderación.
     case removed
@@ -103,7 +103,7 @@ enum ReportReason: String, CaseIterable, Identifiable, Codable, Sendable {
         case .unsafeAdvice:         String(localized: "Puede provocar intoxicación o una reacción alérgica.")
         case .misinformation:       String(localized: "Declara datos nutricionales o médicos falsos.")
         case .intellectualProperty: String(localized: "Reproduce una receta o foto ajena sin crédito.")
-        case .other:                String(localized: "Contanos qué pasa y lo revisamos.")
+        case .other:                String(localized: "Cuéntanos qué pasa y lo revisamos.")
         }
     }
 

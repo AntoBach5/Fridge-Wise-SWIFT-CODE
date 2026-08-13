@@ -39,7 +39,7 @@ struct PointsShopView: View {
                 legalFooter
             }
             .screenPadding()
-            .padding(.bottom, Space.tabBarInset)
+            .padding(.bottom, Space.xxl)
         }
         .scrollIndicators(.hidden)
         .editorialScrollFeel()
@@ -74,7 +74,7 @@ struct PointsShopView: View {
                     .foregroundStyle(Palette.inkSoft)
             }
 
-            Text(String(localized: "Los puntos se ganan cocinando y comentando. Si querés ir más rápido, también podés comprarlos."))
+            Text(String(localized: "Los puntos se ganan cocinando y comentando. Si quieres ir más rápido, también puedes comprarlos."))
                 .bodyStyle()
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -93,7 +93,7 @@ struct PointsShopView: View {
         SoftCard {
             VStack(alignment: .leading, spacing: Space.xs) {
                 Text(String(localized: "Tienda no disponible")).eyebrow(Palette.tomato)
-                Text(String(localized: "No pudimos cargar los productos. Revisá tu conexión o intentá más tarde."))
+                Text(String(localized: "No pudimos cargar los productos. Revisa tu conexión o intenta más tarde."))
                     .bodyStyle()
                     .fixedSize(horizontal: false, vertical: true)
                 Button(String(localized: "Reintentar")) {
@@ -204,7 +204,7 @@ struct PointsShopView: View {
         VStack(alignment: .leading, spacing: Space.xs) {
             Hairline()
 
-            Text(String(localized: "El pago se cobra a tu Apple Account al confirmar. Los puntos se acreditan al instante y no vencen. Las compras de puntos son consumibles: no se restauran, pero si algo falla escribinos a \(SupportContact.email) y lo resolvemos."))
+            Text(String(localized: "El pago se cobra a tu Apple Account al confirmar. Los puntos se acreditan al instante y no vencen. Las compras de puntos son consumibles: no se restauran, pero si algo falla escríbenos a \(SupportContact.email) y lo resolvemos."))
                 .font(Typeface.micro)
                 .foregroundStyle(Palette.inkFaint)
                 .fixedSize(horizontal: false, vertical: true)

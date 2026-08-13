@@ -114,7 +114,7 @@ private struct StaticBlend: View {
 }
 
 /// Réplica nativa razonable de FluidGradient: blobs con deriva desfasada.
-/// Barata (sólo transforms) y no requiere Metal ni dependencias.
+/// Barata (solo transforms) y no requiere Metal ni dependencias.
 private struct DriftingBlobs: View {
     let colors: [Color]
     let speed: CGFloat

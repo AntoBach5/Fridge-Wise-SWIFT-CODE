@@ -55,7 +55,7 @@ struct ReportSheet: View {
         VStack(alignment: .leading, spacing: Space.xs) {
             Text(String(localized: "Reportar")).displayStyle(26)
 
-            Text(String(localized: "Contanos qué pasa con el comentario de \(review.author.displayName). Lo revisamos en menos de 24 horas."))
+            Text(String(localized: "Cuéntanos qué pasa con el comentario de \(review.author.displayName). Lo revisamos en menos de 24 horas."))
                 .bodyStyle()
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -170,7 +170,7 @@ struct ReportSheet: View {
             .disabled(reason == nil)
             .opacity(reason == nil ? 0.45 : 1)
 
-            Text(String(localized: "También podés escribirnos a \(SupportContact.moderationEmail)"))
+            Text(String(localized: "También puedes escribirnos a \(SupportContact.moderationEmail)"))
                 .font(Typeface.micro)
                 .foregroundStyle(Palette.inkFaint)
         }

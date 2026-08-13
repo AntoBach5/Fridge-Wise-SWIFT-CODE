@@ -5,10 +5,10 @@
 //  Gamificación y economía de puntos.
 //
 //  IMPORTANTE — Reglas de App Store que condicionan este diseño:
-//  · Guideline 3.1.1: los puntos son moneda virtual CONSUMIBLE. Se compran sólo
+//  · Guideline 3.1.1: los puntos son moneda virtual CONSUMIBLE. Se compran solo
 //    con In-App Purchase, nunca con un cobro externo. No se pueden transferir
 //    entre usuarios ni canjear por dinero o bienes físicos.
-//  · Guideline 3.1.1: hay que informar si expiran. Acá NO expiran, y se dice.
+//  · Guideline 3.1.1: hay que informar si expiran. Aquí NO expiran, y se dice.
 //  · Guideline 3.1.2: la suscripción premium debe declarar duración, precio y
 //    renovación automática ANTES de comprar, con enlaces a Términos y Privacidad.
 //  · Guideline 3.2.2: nada de loot boxes ni ruleta de recompensas.
@@ -27,6 +27,7 @@ enum PointsEvent: String, Codable, CaseIterable, Identifiable, Sendable {
     case reviewPosted       // dejó un comentario con valoración
     case reviewFoundHelpful // su comentario recibió "útil"
     case recipeShared
+    case recipePublished    // publicó una receta suya en la comunidad
     case pantryTidied       // confirmó/corrigió detecciones
     case purchased          // pack comprado con IAP
 
@@ -41,6 +42,7 @@ enum PointsEvent: String, Codable, CaseIterable, Identifiable, Sendable {
         case .reviewPosted:       20
         case .reviewFoundHelpful: 8
         case .recipeShared:       12
+        case .recipePublished:    40
         case .pantryTidied:       6
         case .purchased:          0     // el monto lo define el pack
         }
@@ -50,11 +52,12 @@ enum PointsEvent: String, Codable, CaseIterable, Identifiable, Sendable {
         switch self {
         case .dailyOpen:          String(localized: "Visita diaria")
         case .streakMilestone:    String(localized: "Racha alcanzada")
-        case .scanCompleted:      String(localized: "Heladera escaneada")
+        case .scanCompleted:      String(localized: "Nevera escaneada")
         case .recipeCooked:       String(localized: "Receta cocinada")
         case .reviewPosted:       String(localized: "Comentario publicado")
         case .reviewFoundHelpful: String(localized: "Tu comentario fue útil")
         case .recipeShared:       String(localized: "Receta compartida")
+        case .recipePublished:    String(localized: "Receta publicada")
         case .pantryTidied:       String(localized: "Despensa ordenada")
         case .purchased:          String(localized: "Pack de puntos")
         }
@@ -69,6 +72,7 @@ enum PointsEvent: String, Codable, CaseIterable, Identifiable, Sendable {
         case .reviewPosted:       "bubble.left"
         case .reviewFoundHelpful: "hand.thumbsup"
         case .recipeShared:       "square.and.arrow.up"
+        case .recipePublished:    "paperplane"
         case .pantryTidied:       "sparkles"
         case .purchased:          "creditcard"
         }
@@ -79,7 +83,7 @@ enum PointsEvent: String, Codable, CaseIterable, Identifiable, Sendable {
         case .dailyOpen, .streakMilestone: .turmeric
         case .scanCompleted, .pantryTidied: .mist
         case .recipeCooked:                 .basil
-        case .reviewPosted, .reviewFoundHelpful, .recipeShared: .plum
+        case .reviewPosted, .reviewFoundHelpful, .recipeShared, .recipePublished: .plum
         case .purchased:                    .clay
         }
     }
@@ -95,7 +99,7 @@ struct PointsEntry: Identifiable, Codable, Sendable {
 
 // MARK: - Canjes
 
-/// Catálogo de canje. Todo lo que hay acá es contenido o funcionalidad DIGITAL
+/// Catálogo de canje. Todo lo que hay aquí es contenido o funcionalidad DIGITAL
 /// dentro de la app: no hay bienes físicos, sorteos ni dinero.
 enum RewardKind: String, Codable, Sendable {
     case adFreeDay

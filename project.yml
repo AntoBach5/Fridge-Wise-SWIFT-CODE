@@ -1,10 +1,10 @@
 # project.yml — definición para XcodeGen.
 #
 # El .xcodeproj del repo usa grupos sincronizados con el sistema de archivos
-# (Xcode 16+): agregás un .swift a la carpeta y entra solo al target, sin
+# (Xcode 16+): añades un .swift a la carpeta y entra solo al target, sin
 # tocar el proyecto ni generar conflictos de merge en project.pbxproj.
 #
-# Si preferís regenerar el proyecto desde cero, o si tu Xcode es anterior a 16:
+# Si prefieres regenerar el proyecto desde cero, o si tu Xcode es anterior a 16:
 #
 #   brew install xcodegen
 #   xcodegen generate
@@ -68,12 +68,12 @@ targets:
         # Los textos de permiso explican el uso REAL. Un texto genérico
         # ("necesitamos la cámara") es rechazo por Guideline 5.1.1.
         INFOPLIST_KEY_NSCameraUsageDescription: >-
-          Fridge Wise usa la cámara para fotografiar el interior de tu heladera y
-          reconocer qué ingredientes tenés. La foto se analiza y se descarta: no
+          Fridge Wise usa la cámara para fotografiar el interior de tu nevera y
+          reconocer qué ingredientes tienes. La foto se analiza y se descarta: no
           se guarda ni se comparte.
         INFOPLIST_KEY_NSPhotoLibraryUsageDescription: >-
-          Elegí una foto de tu heladera desde tu fototeca para reconocer
+          Elige una foto de tu nevera desde tu fototeca para reconocer
           ingredientes sin sacar una nueva.
         INFOPLIST_KEY_NSUserTrackingUsageDescription: >-
           Con tu permiso mostramos publicidad más relevante en la versión
-          gratuita. La app funciona igual si decís que no.
+          gratuita. La app funciona igual si dices que no.

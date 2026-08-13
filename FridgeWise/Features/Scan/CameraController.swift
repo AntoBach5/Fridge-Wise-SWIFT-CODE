@@ -4,10 +4,10 @@
 //
 //  Captura con AVFoundation.
 //
-//  Modelo de concurrencia (explícito, porque acá es donde se rompen estas clases):
+//  Modelo de concurrencia (explícito, porque aquí es donde se rompen estas clases):
 //  · El ESTADO OBSERVABLE vive en `@MainActor` — es lo que lee SwiftUI.
 //  · Los objetos de AVFoundation (`session`, `photoOutput`, `device`) se tocan
-//    SÓLO desde `sessionQueue`, y por eso están marcados `nonisolated(unsafe)`:
+//    SOLO desde `sessionQueue`, y por eso están marcados `nonisolated(unsafe)`:
 //    la exclusión mutua la da la cola serial, no el actor.
 //  · `startRunning()` bloquea; hacerlo en main es el motivo #1 de que la cámara
 //    de una app "tarde en abrir".
@@ -36,7 +36,7 @@ final class CameraController: NSObject {
     /// Luz insuficiente estimada. Avisamos antes de gastar un escaneo de la cuota.
     private(set) var isTooDark = false
 
-    // MARK: Objetos de captura (sólo desde sessionQueue)
+    // MARK: Objetos de captura (solo desde sessionQueue)
 
     nonisolated let session = AVCaptureSession()
     nonisolated private let photoOutput = AVCapturePhotoOutput()
@@ -130,7 +130,7 @@ final class CameraController: NSObject {
 
     // MARK: Luz
 
-    /// Una heladera con la puerta entornada da fotos inservibles.
+    /// Una nevera con la puerta entornada da fotos inservibles.
     private func startLightMonitor() {
         lightMonitor?.cancel()
         lightMonitor = Task { [weak self] in

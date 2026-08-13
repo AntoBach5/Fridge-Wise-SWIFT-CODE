@@ -18,15 +18,31 @@ import SwiftUI
 
 struct RecipeDetailView: View {
 
-    let recipe: Recipe
+    /// Copia con la que se navegó hasta aquí. Solo se usa como red de seguridad
+    /// si la receta ya no está en el estado.
+    private let fallback: Recipe
 
     @Environment(\.app) private var app
     @Environment(\.dismiss) private var dismiss
 
     @State private var showsCookMode = false
     @State private var isWritingReview = false
+    @State private var isConfirmingPublish = false
+    @State private var isConfirmingPublishFinal = false
+    @State private var showsAgreement = false
+    @State private var publishError: String?
 
     private let heroHeight: CGFloat = 320
+
+    init(recipe: Recipe) {
+        self.fallback = recipe
+    }
+
+    /// La receta se resuelve contra el estado en cada render: al publicarla
+    /// deja de ser `.generated` y esta pantalla tiene que enterarse.
+    private var recipe: Recipe {
+        app.recipe(for: fallback.id) ?? fallback
+    }
 
     var body: some View {
         ScrollView {
@@ -37,9 +53,19 @@ struct RecipeDetailView: View {
                 allergenNotice
                 ingredientsSection
                 stepsSection
-                communitySection
+
+                // Una receta generada es privada: se armó contra la despensa de
+                // una persona concreta, así que no admite comentarios de nadie
+                // más. En su lugar se ofrece publicarla, y ahí sí se abre.
+                if recipe.source == .generated {
+                    publishSection
+                } else {
+                    communitySection
+                }
             }
-            .padding(.bottom, 140)
+            // `safeAreaInset` ya reserva el alto de la barra de acciones; esto
+            // es solo aire para que el último bloque no quede pegado.
+            .padding(.bottom, Space.lg)
         }
         .scrollIndicators(.hidden)
         .editorialScrollFeel()
@@ -58,6 +84,67 @@ struct RecipeDetailView: View {
                 .presentationCornerRadius(Radius.sheet)
                 .presentationBackground(Palette.canvas)
                 .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showsAgreement) {
+            CommunityAgreementSheet(
+                onAccept: {
+                    app.profile.agreement = CommunityAgreement(
+                        acceptedVersion: CommunityAgreement.currentVersion,
+                        acceptedAt: .now
+                    )
+                    showsAgreement = false
+                    isConfirmingPublishFinal = true
+                },
+                onDecline: { showsAgreement = false }
+            )
+            .presentationDetents([.height(520)])
+            .presentationCornerRadius(Radius.sheet)
+            .presentationBackground(Palette.canvas)
+            .interactiveDismissDisabled()
+        }
+        // Doble confirmación: publicar es irreversible desde la app y lleva el
+        // nombre del usuario. Un solo toque no alcanza para eso.
+        .confirmationDialog(
+            String(localized: "¿Publicar «\(recipe.title)»?"),
+            isPresented: $isConfirmingPublish,
+            titleVisibility: .visible
+        ) {
+            Button(String(localized: "Continuar")) {
+                if app.profile.agreement.needsAcceptance {
+                    showsAgreement = true
+                } else {
+                    isConfirmingPublishFinal = true
+                }
+            }
+            Button(String(localized: "Cancelar"), role: .cancel) {}
+        } message: {
+            Text(String(localized: "Cualquier persona podrá verla, guardarla y comentarla. Se publicará con tu nombre y pasará por moderación."))
+        }
+        .alert(
+            String(localized: "Última confirmación"),
+            isPresented: $isConfirmingPublishFinal
+        ) {
+            Button(String(localized: "Publicar")) { publish() }
+            Button(String(localized: "Ahora no"), role: .cancel) {}
+        } message: {
+            Text(String(localized: "Una vez publicada aparecerá en el feed de la comunidad. Para retirarla tendrás que escribir a soporte."))
+        }
+        .alert(
+            String(localized: "No se ha publicado"),
+            isPresented: Binding(
+                get: { publishError != nil },
+                set: { if !$0 { publishError = nil } }
+            )
+        ) {
+            Button(String(localized: "Entendido"), role: .cancel) {}
+        } message: {
+            Text(publishError ?? "")
+        }
+    }
+
+    private func publish() {
+        if case .rejected(let reason) = app.publishToCommunity(recipe) {
+            publishError = reason
         }
     }
 
@@ -257,7 +344,7 @@ struct RecipeDetailView: View {
         case .a: String(localized: "Buen balance de proteína y fibra, con grasas moderadas.")
         case .b: String(localized: "Nutritiva y equilibrada para una comida principal.")
         case .c: String(localized: "Está bien de vez en cuando; alta en carbohidratos.")
-        case .d: String(localized: "Rica pero pesada. Acompañala con algo verde.")
+        case .d: String(localized: "Rica pero pesada. Acompáñala con algo verde.")
         case .e: String(localized: "Un gusto. Nada de malo en eso, con moderación.")
         }
     }
@@ -351,7 +438,7 @@ struct RecipeDetailView: View {
         .padding(.vertical, 11)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(ingredient.isInPantry
-            ? String(localized: "\(ingredient.name), \(ingredient.amount), lo tenés")
+            ? String(localized: "\(ingredient.name), \(ingredient.amount), lo tienes")
             : String(localized: "\(ingredient.name), \(ingredient.amount), te falta"))
     }
 
@@ -460,6 +547,60 @@ struct RecipeDetailView: View {
         .accessibilityLabel(String(localized: "Paso \(step.order). \(step.instruction)"))
     }
 
+    // MARK: - Publicar
+
+    private var publishSection: some View {
+        VStack(alignment: .leading, spacing: Space.md) {
+            SectionHeader(String(localized: "Solo tuya"), accent: Palette.plum)
+                .screenPadding()
+
+            SoftCard(tint: Palette.plum) {
+                VStack(alignment: .leading, spacing: Space.md) {
+                    HStack(alignment: .top, spacing: Space.sm) {
+                        ZStack {
+                            Circle().fill(Palette.plum.opacity(0.14))
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(Palette.plum)
+                        }
+                        .frame(width: 38, height: 38)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(String(localized: "Hecha con tu despensa"))
+                                .font(Typeface.headline)
+                                .foregroundStyle(Palette.ink)
+
+                            Text(String(localized: "Está calculada sobre lo que tienes ahora mismo, así que no lleva comentarios: por ahora no la ve nadie más. Si crees que le sirve a cualquiera, publícala."))
+                                .font(Typeface.callout)
+                                .foregroundStyle(Palette.inkSoft)
+                                .lineSpacing(2.5)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+
+                        Spacer(minLength: 0)
+                    }
+
+                    Button {
+                        Haptics.select()
+                        isConfirmingPublish = true
+                    } label: {
+                        HStack(spacing: 7) {
+                            Image(systemName: "paperplane")
+                                .font(.system(size: 11, weight: .semibold))
+                            Text(String(localized: "Publicar en la comunidad"))
+                            Spacer(minLength: 0)
+                            Text(String(localized: "+\(PointsEvent.recipePublished.amount) pts"))
+                                .font(Typeface.micro)
+                                .fontWeight(.bold)
+                        }
+                    }
+                    .buttonStyle(AccentButtonStyle(accent: Palette.plum, fullWidth: true))
+                }
+            }
+            .screenPadding()
+        }
+    }
+
     // MARK: - Comunidad
 
     private var communitySection: some View {
@@ -539,7 +680,7 @@ struct RecipeDetailView: View {
                     .frame(width: 48, height: 48)
             }
             .buttonStyle(QuietButtonStyle())
-            .accessibilityLabel(String(localized: "Agendar para cocinar"))
+            .accessibilityLabel(String(localized: "Planificar para cocinar"))
 
             Button {
                 Haptics.commit()

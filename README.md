@@ -1,6 +1,6 @@
 # Fridge Wise
 
-App iOS en SwiftUI. Sacás una foto de la heladera, te dice qué tenés, y te propone
+App iOS en SwiftUI. Sacas una foto de la nevera, te dice qué tienes, y te propone
 qué cocinar con eso.
 
 ---
@@ -12,10 +12,10 @@ open FridgeWise.xcodeproj
 ```
 
 Requiere **Xcode 16 o superior** (el proyecto usa grupos sincronizados con el sistema
-de archivos: agregás un `.swift` a la carpeta y entra solo al target, sin conflictos de
+de archivos: añades un `.swift` a la carpeta y entra solo al target, sin conflictos de
 merge en `project.pbxproj`). Deployment target: **iOS 17.0**.
 
-Al abrir, Xcode resuelve solo los tres paquetes SPM. Si tenés Xcode 15 o querés
+Al abrir, Xcode resuelve solo los tres paquetes SPM. Si tienes Xcode 15 o quieres
 regenerar el proyecto desde cero:
 
 ```bash
@@ -24,7 +24,7 @@ brew install xcodegen && xcodegen generate
 
 ### Probar las compras sin App Store Connect
 
-En el esquema → *Run* → *Options* → **StoreKit Configuration**, elegí
+En el esquema → *Run* → *Options* → **StoreKit Configuration**, elige
 `FridgeWise/Products.storekit`. Ya trae los cuatro packs de puntos y las dos
 suscripciones con prueba gratis de una semana.
 
@@ -102,7 +102,7 @@ bundle — la app usa los fallbacks. Cuando lleguen del diseñador de motion, se
 en `Resources` y aparecen solas.
 
 > **Nota de versión sobre Introspect:** los modifiers apuntan a `.iOS(.v17, .v18)`.
-> Si SPM resuelve una versión que todavía no conoce `.v18`, sacá ese caso de las listas
+> Si SPM resuelve una versión que todavía no conoce `.v18`, saca ese caso de las listas
 > en `Bridges/IntrospectBridge.swift`.
 
 ---
@@ -150,7 +150,7 @@ Los tres bloqueantes reales:
 **El escaneo es teatral a propósito.** Las fases ("recorriendo los estantes" →
 "identificando ingredientes") y los pins que aparecen uno a uno sobre tu propia foto
 no están para disimular latencia. Están porque un spinner de tres segundos seguido de
-una lista se siente como magia barata, y ver los pins caer sobre tu heladera se siente
+una lista se siente como magia barata, y ver los pins caer sobre tu nevera se siente
 como que algo entendió lo que hay adentro.
 
 **Toda detección pasa por revisión humana.** Nada entra a la despensa sin que el

@@ -87,7 +87,7 @@ enum RecipeTag: String, Codable, CaseIterable, Identifiable, Sendable {
         case .highProtein: String(localized: "Alta en proteína")
         case .useSoon:     String(localized: "Usa lo que vence")
         case .comfort:     String(localized: "Reconfortante")
-        case .lowCal:      String(localized: "Liviana")
+        case .lowCal:      String(localized: "Ligera")
         case .budget:      String(localized: "Económica")
         case .onePan:      String(localized: "Una sola olla")
         }
@@ -116,7 +116,7 @@ enum RecipeSource: String, Codable, Sendable {
 
     var label: String {
         switch self {
-        case .generated: String(localized: "Generada para vos")
+        case .generated: String(localized: "Generada para ti")
         case .community: String(localized: "De la comunidad")
         case .editorial: String(localized: "Selección Fridge Wise")
         }
@@ -214,7 +214,7 @@ struct Recipe: Identifiable, Hashable, Codable, Sendable {
 
     var matchDescription: String {
         switch pantryMatch {
-        case 1:     String(localized: "Tenés todo")
+        case 1:     String(localized: "Tienes todo")
         case 0.8...: String(localized: "Falta 1 ingrediente")
         default:    String(localized: "Faltan \(missingIngredients.count) ingredientes")
         }

@@ -34,7 +34,7 @@ struct RewardCatalogView: View {
                     .padding(.top, Space.xs)
             }
             .screenPadding()
-            .padding(.bottom, Space.tabBarInset)
+            .padding(.bottom, Space.xxl)
         }
         .scrollIndicators(.hidden)
         .editorialScrollFeel()

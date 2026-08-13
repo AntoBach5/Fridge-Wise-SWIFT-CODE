@@ -115,7 +115,7 @@ struct PillTabBar: View {
             .frame(width: 54, height: 54)
         }
         .buttonStyle(.pressableCard)
-        .accessibilityLabel(String(localized: "Escanear heladera"))
+        .accessibilityLabel(String(localized: "Escanear nevera"))
         .accessibilityHint(String(localized: "Abre la cámara para detectar ingredientes"))
     }
 }

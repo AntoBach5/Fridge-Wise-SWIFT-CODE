@@ -5,7 +5,7 @@
 //  Escribir un comentario.
 //
 //  Detalles que importan:
-//  · El filtro corre MIENTRAS escribís, no al enviar. Enterarte de que tu
+//  · El filtro corre MIENTRAS escribes, no al enviar. Enterarte de que tu
 //    comentario no se puede publicar después de escribirlo es hostil.
 //  · La primera vez hay que aceptar las normas (Guideline 1.2 exige un EULA
 //    con tolerancia cero al contenido abusivo antes de participar).
@@ -231,7 +231,7 @@ struct ReviewComposerSheet: View {
             .disabled(!canPublish)
             .opacity(canPublish ? 1 : 0.45)
 
-            Text(String(localized: "Al publicar aceptás las normas de la comunidad."))
+            Text(String(localized: "Al publicar aceptas las normas de la comunidad."))
                 .font(Typeface.micro)
                 .foregroundStyle(Palette.inkFaint)
         }
@@ -290,10 +290,10 @@ struct CommunityAgreementSheet: View {
                      String(localized: "Nada de acoso, odio ni contenido sexual. Retiramos y bloqueamos sin aviso."))
                 rule("cross.case", String(localized: "Seguridad alimentaria"),
                      String(localized: "No publiques consejos que puedan enfermar a alguien. Revisamos lo que se marca como riesgoso."))
-                rule("flag", String(localized: "Reportá lo que veas"),
+                rule("flag", String(localized: "Reporta lo que veas"),
                      String(localized: "Cada comentario tiene la opción de reportar. Respondemos en menos de 24 horas."))
                 rule("doc.on.doc", String(localized: "Contenido propio"),
-                     String(localized: "Publicá recetas y fotos tuyas, o dá crédito a quien corresponda."))
+                     String(localized: "Publica recetas y fotos tuyas, o da crédito a quien corresponda."))
             }
 
             Spacer(minLength: 0)

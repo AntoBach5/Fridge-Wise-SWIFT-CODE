@@ -8,7 +8,7 @@
 //  enchufa después. Lo que importa ahora es que el CONTRATO ya esté fijo, así
 //  la UI se construye contra la interfaz final y no hay que reescribirla:
 //
-//    · Emite progreso, no sólo un resultado → la pantalla de escaneo puede
+//    · Emite progreso, no solo un resultado → la pantalla de escaneo puede
 //      contar una historia en lugar de mostrar un spinner.
 //    · Devuelve confianza por ítem + caja de detección → podemos anclar pins
 //      sobre la foto y marcar en ámbar lo que conviene que el usuario revise.
@@ -24,7 +24,7 @@ import SwiftUI
 // MARK: - Contrato
 
 protocol FridgeScanning: Sendable {
-    /// Analiza una foto de heladera y va emitiendo el avance.
+    /// Analiza una foto de nevera y va emitiendo el avance.
     func scan(_ image: UIImage) -> AsyncThrowingStream<ScanPhase, Error>
 }
 
@@ -39,7 +39,7 @@ enum ScanPhase: Sendable, Equatable {
 
     var caption: String {
         switch self {
-        case .preparing:          String(localized: "Enfocando la heladera")
+        case .preparing:          String(localized: "Enfocando la nevera")
         case .analyzing(let p) where p < 0.4: String(localized: "Recorriendo los estantes")
         case .analyzing(let p) where p < 0.75: String(localized: "Identificando ingredientes")
         case .analyzing:          String(localized: "Casi listo")
@@ -74,13 +74,13 @@ enum ScanError: LocalizedError {
     var recoverySuggestion: String? {
         switch self {
         case .cameraUnavailable:
-            String(localized: "Activá el permiso de cámara en Ajustes para escanear tu heladera.")
+            String(localized: "Activa el permiso de cámara en Ajustes para escanear tu nevera.")
         case .imageTooDark:
-            String(localized: "Abrí la puerta del todo o prendé la luz de la cocina.")
+            String(localized: "Abre la puerta del todo o enciende la luz de la cocina.")
         case .noIngredientsFound:
-            String(localized: "Probá acercándote un poco o agregá los ingredientes a mano.")
+            String(localized: "Prueba acercándote un poco o añade los ingredientes a mano.")
         case .limitReached:
-            String(localized: "Volvé mañana, canjeá puntos por escaneos extra, o pasate a Premium.")
+            String(localized: "Vuelve mañana, canjea puntos por escaneos extra, o pásate a Premium.")
         case .cancelled:
             nil
         }

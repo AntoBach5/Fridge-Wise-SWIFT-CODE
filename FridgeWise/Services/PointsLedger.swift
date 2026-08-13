@@ -5,7 +5,7 @@
 //  Motor de puntos. Un libro mayor append-only: el saldo siempre es la suma
 //  de los asientos, nunca un número suelto que se puede desincronizar.
 //
-//  Decisiones de producto que están codificadas acá:
+//  Decisiones de producto que están codificadas aquí:
 //  · La visita diaria acredita UNA vez por día natural, no por sesión.
 //    Premiar cada apertura entrena a abrir la app compulsivamente.
 //  · Comentar acredita al publicar, pero si el comentario se retira por
@@ -80,7 +80,7 @@ final class PointsLedger {
             case .insufficientPoints(let needed):
                 String(localized: "Te faltan \(needed) puntos para este canje.")
             case .alreadyActive:
-                String(localized: "Ya tenés este beneficio activo.")
+                String(localized: "Ya tienes este beneficio activo.")
             }
         }
     }

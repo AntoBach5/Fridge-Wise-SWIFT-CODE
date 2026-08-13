@@ -6,8 +6,8 @@
 //
 //  Lo que hace que sean un sistema y no dos blocs de notas:
 //  · Cada fila que vino de una receta muestra su origen y vuelve a ella.
-//  · Tildar algo en To Buy lo mete en la despensa automáticamente.
-//  · Agendar una receta en To Cook empuja sus faltantes a To Buy.
+//  · Marcar algo en To Buy lo mete en la despensa automáticamente.
+//  · Planificar una receta en To Cook empuja sus faltantes a To Buy.
 //
 //  Cero `List` nativo: filas propias con swipe custom, para poder controlar
 //  el fondo, los separadores y la física del gesto.
@@ -112,8 +112,8 @@ struct ListsView: View {
 
             TextField(
                 kind == .toBuy
-                    ? String(localized: "Agregar a la compra")
-                    : String(localized: "Agregar algo para cocinar"),
+                    ? String(localized: "Añadir a la compra")
+                    : String(localized: "Añadir algo para cocinar"),
                 text: $newItem
             )
             .font(Typeface.body)
@@ -133,7 +133,7 @@ struct ListsView: View {
                         .background { Circle().fill(kind.accent.color) }
                 }
                 .transition(.scale.combined(with: .opacity))
-                .accessibilityLabel(String(localized: "Agregar"))
+                .accessibilityLabel(String(localized: "Añadir"))
             }
         }
         .padding(.horizontal, Space.md)

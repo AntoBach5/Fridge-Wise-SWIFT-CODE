@@ -7,7 +7,7 @@
 //  Por qué no SwiftData/Core Data: el estado de esta app es un puñado de
 //  colecciones chicas que se leen enteras al abrir. Un archivo JSON atómico
 //  es más simple, más fácil de migrar y trivial de exportar — lo que además
-//  nos resuelve el "descargá tus datos" que pide la normativa de privacidad.
+//  nos resuelve el "descarga tus datos" que pide la normativa de privacidad.
 //
 //  Todo se escribe con `.atomic` para que un cierre forzado no deje el archivo
 //  a medio escribir.

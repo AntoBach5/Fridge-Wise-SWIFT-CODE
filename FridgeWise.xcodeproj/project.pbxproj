@@ -242,9 +242,9 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Fridge Wise";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Fridge Wise usa la camara para fotografiar el interior de tu heladera y reconocer que ingredientes tenes. La foto se analiza y se descarta: no se guarda ni se comparte.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Elegi una foto de tu heladera desde tu fototeca para reconocer ingredientes sin sacar una nueva.";
-				INFOPLIST_KEY_NSUserTrackingUsageDescription = "Con tu permiso mostramos publicidad mas relevante en la version gratuita. La app funciona igual si decis que no.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Fridge Wise usa la cámara para fotografiar el interior de tu nevera y reconocer qué ingredientes tienes. La foto se analiza y se descarta: no se guarda ni se comparte.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Elige una foto de tu nevera desde tu fototeca para reconocer ingredientes sin hacer una nueva.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "Con tu permiso mostramos publicidad más relevante en la versión gratuita. La app funciona igual si dices que no.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
@@ -270,9 +270,9 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Fridge Wise";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Fridge Wise usa la camara para fotografiar el interior de tu heladera y reconocer que ingredientes tenes. La foto se analiza y se descarta: no se guarda ni se comparte.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Elegi una foto de tu heladera desde tu fototeca para reconocer ingredientes sin sacar una nueva.";
-				INFOPLIST_KEY_NSUserTrackingUsageDescription = "Con tu permiso mostramos publicidad mas relevante en la version gratuita. La app funciona igual si decis que no.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Fridge Wise usa la cámara para fotografiar el interior de tu nevera y reconocer qué ingredientes tienes. La foto se analiza y se descarta: no se guarda ni se comparte.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Elige una foto de tu nevera desde tu fototeca para reconocer ingredientes sin hacer una nueva.";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "Con tu permiso mostramos publicidad más relevante en la versión gratuita. La app funciona igual si dices que no.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;

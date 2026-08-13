@@ -5,7 +5,7 @@ Estado de cumplimiento de las guidelines que aplican a esta app.
 
 Fridge Wise activa cuatro áreas de riesgo a la vez: **contenido generado por usuarios**,
 **compras dentro de la app**, **publicidad** y **contenido generado por IA sobre comida**.
-Cada una tiene rechazos típicos y acá está cómo se evitan.
+Cada una tiene rechazos típicos y aquí está cómo se evitan.
 
 ---
 
@@ -45,7 +45,7 @@ de insultos genérico.
 | Se informa si los puntos expiran | ✅ | No expiran, y se dice explícitamente |
 | Los consumibles se entregan antes de `finish()` | ✅ | `StoreService.deliver(_:)` |
 | Transacciones recuperadas fuera del flujo de compra | ✅ | `Transaction.updates` escuchado desde `init` |
-| Los canjes sólo dan contenido digital dentro de la app | ✅ | `RewardKind` — sin bienes físicos, sorteos ni dinero |
+| Los canjes solo dan contenido digital dentro de la app | ✅ | `RewardKind` — sin bienes físicos, sorteos ni dinero |
 
 ---
 
@@ -65,7 +65,7 @@ Cada punto de esta lista se ve en `PaywallView`. Falta uno = rechazo.
 - ✅ Gestión de suscripción vía `.manageSubscriptionsSheet`
 
 ⚠️ Los mismos textos legales tienen que aparecer también en la **descripción de la app
-en App Store Connect** y en el campo de EULA. No alcanza con tenerlos sólo en la app.
+en App Store Connect** y en el campo de EULA. No alcanza con tenerlos solo en la app.
 
 ---
 
@@ -84,13 +84,13 @@ en App Store Connect** y en el campo de EULA. No alcanza con tenerlos sólo en l
 | Privacy Manifest | ✅ | `PrivacyInfo.xcprivacy` |
 | Borrado de cuenta y datos desde adentro de la app (5.1.1 v) | ✅ | `DataPrivacyView` → `AppEnvironment.deleteAllData()` |
 | Exportación de datos (GDPR/CCPA) | ✅ | `PersistenceStore.exportAll()` |
-| No se condiciona funcionalidad al consentimiento de tracking | ✅ | ATT sólo cambia si el anuncio es personalizado |
+| No se condiciona funcionalidad al consentimiento de tracking | ✅ | ATT solo cambia si el anuncio es personalizado |
 
 ⚠️ **El manifiesto tiene que coincidir exactamente con las nutrition labels** que
 cargues en App Store Connect. Si no coinciden, rechazo.
 
-⚠️ Si finalmente **no** vas a mostrar publicidad personalizada: poné `NSPrivacyTracking`
-en `<false/>`, sacá los bloques de *Advertising Data* y *Device ID*, y eliminá el prompt
+⚠️ Si finalmente **no** vas a mostrar publicidad personalizada: pon `NSPrivacyTracking`
+en `<false/>`, saca los bloques de *Advertising Data* y *Device ID*, y elimina el prompt
 de ATT. Pedir permiso de tracking sin usarlo también es motivo de rechazo.
 
 ---
@@ -101,7 +101,7 @@ de ATT. Pedir permiso de tracking sin usarlo también es motivo de rechazo.
 |---|---|---|
 | Anuncios rotulados y distinguibles del contenido | ✅ | `NativeAdCard` — fondo hundido y borde punteado |
 | Sin anuncios durante tareas críticas | ✅ | `AdCoordinator.ProtectedContext` — escaneo y modo cocina |
-| Sin intersticial al abrir la app | ✅ | Sólo en transiciones naturales, con tope de 8 minutos |
+| Sin intersticial al abrir la app | ✅ | Solo en transiciones naturales, con tope de 8 minutos |
 | Cero anuncios para Premium o con canje activo | ✅ | `AdCoordinator.adsDisabled` |
 | Sin personalización sin ATT | ✅ | `AdCoordinator.personalizationAllowed` |
 
@@ -118,7 +118,7 @@ Esta es la que se subestima en una app de recetas.
 - ✅ Se aclara que no reemplaza el consejo de un profesional de la nutrición.
 - ✅ El filtro de moderación marca consejos de seguridad alimentaria riesgosos.
 
-⚠️ Si en algún momento se agregan afirmaciones de salud ("bajá de peso", "apto
+⚠️ Si en algún momento se añaden afirmaciones de salud ("baja de peso", "apto
 diabéticos"), la app pasa a categoría de salud y cambia todo el análisis regulatorio.
 Evitarlo salvo decisión explícita con asesoría.
 
@@ -147,7 +147,7 @@ premiada.
 
 ---
 
-## Antes de apretar "Submit"
+## Antes de pulsar "Submit"
 
 1. ⚠️ Publicar y verificar las tres URLs de `SupportContact`.
 2. ⚠️ Crear los 6 productos en App Store Connect con los IDs exactos de
@@ -155,7 +155,7 @@ premiada.
 3. ⚠️ Completar nutrition labels que coincidan con `PrivacyInfo.xcprivacy`.
 4. ⚠️ Definir clasificación por edad contemplando el UGC.
 5. ⚠️ Preparar cuenta de demo y notas para el revisor explicando el flujo de escaneo
-   (el revisor no tiene una heladera a mano: dejarle una foto de prueba en el dispositivo
+   (el revisor no tiene una nevera a mano: dejarle una foto de prueba en el dispositivo
    o un modo demo).
 6. ⚠️ Probar el flujo completo de compra con Sandbox, incluyendo "Ask to Buy" y
    restauración.

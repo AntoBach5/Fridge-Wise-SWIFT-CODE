@@ -5,7 +5,7 @@
 //  Qué pasa cuando el plan gratuito se queda sin cupo.
 //
 //  Postura: esto NO es un muro. Se ofrecen tres salidas y dos de ellas son
-//  gratis (esperar a mañana, canjear puntos ganados). Un límite que sólo se
+//  gratis (esperar a mañana, canjear puntos ganados). Un límite que solo se
 //  destraba pagando convierte la app en un rehén, y eso se paga con reseñas
 //  de una estrella mucho antes que con suscripciones.
 //
@@ -106,11 +106,11 @@ struct LimitReachedSheet: View {
     private var message: String {
         switch prompt.resource {
         case .scan, .aiGeneration:
-            String(localized: "El contador se reinicia a la medianoche. Mientras tanto podés canjear puntos o pasarte a Premium.")
+            String(localized: "El contador se reinicia a la medianoche. Mientras tanto puedes canjear puntos o pasarte a Premium.")
         case .savedRecipe:
-            String(localized: "El plan gratuito guarda hasta \(prompt.limit) recetas. Borrá alguna, o pasate a Premium para no volver a elegir.")
+            String(localized: "El plan gratuito guarda hasta \(prompt.limit) recetas. Borra alguna, o pásate a Premium para no volver a elegir.")
         case .listItem:
-            String(localized: "El plan gratuito llega a \(prompt.limit) ítems activos. Tildá lo que ya compraste para hacer lugar.")
+            String(localized: "El plan gratuito llega a \(prompt.limit) ítems activos. Marca lo que ya compraste para hacer lugar.")
         }
     }
 

@@ -9,7 +9,7 @@
 //    4. Contacto publicado              → `SupportContact`
 //
 //  El filtro local es la primera línea, no la única: en producción la decisión
-//  final la toma el backend. Filtrar sólo en el cliente es trivial de eludir,
+//  final la toma el backend. Filtrar solo en el cliente es trivial de eludir,
 //  pero filtrar en el cliente igual sirve para dar feedback instantáneo al autor
 //  antes de que apriete "publicar".
 //
@@ -36,7 +36,7 @@ final class ModerationService {
         case blocked(reason: String)
 
         /// `.flagged` SÍ publica: queda visible para su autor y va a la cola de
-        /// revisión. Sólo `.blocked` corta la publicación.
+        /// revisión. Solo `.blocked` corta la publicación.
         var canPublish: Bool {
             if case .blocked = self { return false }
             return true
@@ -69,7 +69,7 @@ final class ModerationService {
     /// nuestro dominio y merece su propia lista.
     private let unsafeAdvicePatterns: [String] = [
         "(?i)pollo\\s+(crudo|rosado|poco\\s+cocido)",
-        "(?i)(descongelar|descongelá).{0,20}(sol|mostrador|ventana)",
+        "(?i)(descongelar|descongela).{0,20}(sol|mostrador|ventana)",
         "(?i)re-?congelar.{0,15}(carne|pollo|pescado)",
         "(?i)conservas?\\s+caseras?.{0,25}sin\\s+esterilizar"
     ]
@@ -133,7 +133,7 @@ final class ModerationService {
     }
 
     /// Filtro que aplica todo lo anterior de una sola pasada.
-    /// Toda lista de comentarios de la app pasa por acá.
+    /// Toda lista de comentarios de la app pasa por aquí.
     func visible(_ reviews: [Review]) -> [Review] {
         reviews.filter { review in
             guard review.moderation.isVisibleToOthers else { return false }

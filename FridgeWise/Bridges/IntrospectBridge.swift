@@ -5,7 +5,7 @@
 //  Puente a siteline/swiftui-introspect.
 //  https://github.com/siteline/swiftui-introspect
 //
-//  Introspect es un bisturí, no un martillo. Cada uso acá está justificado porque
+//  Introspect es un bisturí, no un martillo. Cada uso aquí está justificado porque
 //  SwiftUI puro NO expone la propiedad, y cada uno es reversible si Apple algún día
 //  publica la API nativa: se borra el cuerpo del modifier y la app sigue funcionando.
 //
@@ -17,7 +17,7 @@
 //  · Delaying de content touches            → botones dentro de scroll responden al toque.
 //
 //  Nota de versiones: si SPM resuelve una versión de Introspect que todavía no
-//  conoce `.v18`, borrá `.v18` de las listas de plataforma de abajo.
+//  conoce `.v18`, borra `.v18` de las listas de plataforma de abajo.
 //
 
 import SwiftUI

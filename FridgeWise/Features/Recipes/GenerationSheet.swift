@@ -4,8 +4,8 @@
 //
 //  Generación de recetas con IA.
 //
-//  Dos cosas que la mayoría de las apps con IA hacen mal y acá no:
-//  1. La espera cuenta algo. Las fases ("mirando qué tenés" → "probando
+//  Dos cosas que la mayoría de las apps con IA hacen mal y aquí no:
+//  1. La espera cuenta algo. Las fases ("mirando qué tienes" → "probando
 //     combinaciones" → "equilibrando la nutrición") describen trabajo real y
 //     dejan al usuario entender qué se está optimizando.
 //  2. El resultado se declara como generado, con su disclaimer de alérgenos y
@@ -28,6 +28,7 @@ struct GenerationSheet: View {
     @State private var task: Task<Void, Never>?
 
     @State private var thinkingController = RiveController(.thinking)
+    @FocusState private var isTypingRequest: Bool
 
     enum Stage: Equatable { case setup, working, done }
 
@@ -70,6 +71,7 @@ struct GenerationSheet: View {
             .padding(.bottom, 120)
         }
         .scrollIndicators(.hidden)
+        .dismissKeyboardOnDrag()
         .safeAreaInset(edge: .bottom) { setupFooter }
     }
 
@@ -182,7 +184,7 @@ struct GenerationSheet: View {
 
     private var tagControl: some View {
         VStack(alignment: .leading, spacing: Space.sm) {
-            SectionHeader(String(localized: "Qué buscás"))
+            SectionHeader(String(localized: "Qué buscas"))
 
             FlowLayout(spacing: Space.xs) {
                 ForEach(RecipeTag.allCases) { tag in
@@ -211,7 +213,65 @@ struct GenerationSheet: View {
                     .accessibilityAddTraits(isOn ? [.isSelected, .isButton] : .isButton)
                 }
             }
+
+            customRequestField
         }
+    }
+
+    /// Escape hatch para cuando ninguna etiqueta describe lo que la persona
+    /// quiere. Ocho chips no cubren "sin horno" ni "algo para llevar", y sin
+    /// esto la única salida es conformarse.
+    private var customRequestField: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: Space.xs) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(isTypingRequest ? Palette.plum : Palette.inkFaint)
+
+                TextField(
+                    String(localized: "O dilo tú: «algo picante», «sin horno»…"),
+                    text: $preferences.customRequest
+                )
+                .font(Typeface.body)
+                .foregroundStyle(Palette.ink)
+                .focused($isTypingRequest)
+                .submitLabel(.done)
+
+                if !preferences.customRequest.isEmpty {
+                    Button {
+                        Haptics.tick()
+                        withAnimation(Motion.tap) { preferences.customRequest = "" }
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Palette.inkFaint)
+                    }
+                    .buttonStyle(.plain)
+                    .transition(.scale.combined(with: .opacity))
+                    .accessibilityLabel(String(localized: "Borrar lo escrito"))
+                }
+            }
+            .padding(.horizontal, Space.md)
+            .padding(.vertical, 12)
+            .background { Capsule().fill(Palette.surface) }
+            .overlay {
+                Capsule().strokeBorder(
+                    isTypingRequest ? Palette.plum.opacity(0.4) : Palette.hairline,
+                    lineWidth: Stroke.hairline
+                )
+            }
+            .motion(Motion.standard, value: isTypingRequest)
+            .motion(Motion.tap, value: preferences.customRequest.isEmpty)
+
+            if !preferences.customRequest.isEmpty {
+                Text(String(localized: "Lo tenemos en cuenta para ordenar las propuestas, no para descartarlas."))
+                    .font(Typeface.micro)
+                    .foregroundStyle(Palette.inkFaint)
+                    .padding(.horizontal, Space.xxs)
+                    .transition(.opacity)
+            }
+        }
+        .padding(.top, Space.xxs)
     }
 
     private var setupFooter: some View {
@@ -223,7 +283,7 @@ struct GenerationSheet: View {
             .disabled(app.pantry.count < 3)
 
             if app.pantry.count < 3 {
-                Text(String(localized: "Necesitamos al menos 3 ingredientes. Escaneá tu heladera primero."))
+                Text(String(localized: "Necesitamos al menos 3 ingredientes. Escanea tu nevera primero."))
                     .font(Typeface.micro)
                     .foregroundStyle(Palette.tomato)
                     .multilineTextAlignment(.center)
@@ -352,7 +412,7 @@ struct GenerationSheet: View {
                 .foregroundStyle(Palette.inkFaint)
                 .padding(.top, 1)
 
-            Text(String(localized: "Recetas generadas automáticamente. Los valores nutricionales son estimaciones y la lista de alérgenos puede estar incompleta: revisá los ingredientes antes de cocinar si tenés alguna alergia."))
+            Text(String(localized: "Recetas generadas automáticamente. Los valores nutricionales son estimaciones y la lista de alérgenos puede estar incompleta: revisa los ingredientes antes de cocinar si tienes alguna alergia."))
                 .font(Typeface.micro)
                 .foregroundStyle(Palette.inkFaint)
                 .lineSpacing(2.5)

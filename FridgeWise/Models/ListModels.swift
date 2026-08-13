@@ -40,9 +40,9 @@ enum ListKind: String, Codable, CaseIterable, Identifiable, Hashable, Sendable {
     var emptyMessage: String {
         switch self {
         case .toBuy:
-            String(localized: "Cuando una receta necesite algo que no tenés, aparece acá con un toque.")
+            String(localized: "Cuando una receta necesite algo que no tienes, aparece aquí con un toque.")
         case .toCook:
-            String(localized: "Guardá una receta para cocinar y armamos el plan con sus pasos y tiempos.")
+            String(localized: "Guarda una receta para cocinar y armamos el plan con sus pasos y tiempos.")
         }
     }
 

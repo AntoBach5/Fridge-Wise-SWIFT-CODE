@@ -17,7 +17,7 @@ enum Haptics {
         UISelectionFeedbackGenerator().selectionChanged()
     }
 
-    /// Acción confirmada: tildar un ítem, guardar receta.
+    /// Acción confirmada: marcar un ítem, guardar receta.
     static func tick() {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }

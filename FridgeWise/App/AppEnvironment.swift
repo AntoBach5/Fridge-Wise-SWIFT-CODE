@@ -4,7 +4,7 @@
 //
 //  Estado raíz de la app. Una sola fuente de verdad, inyectada por `@Environment`.
 //
-//  Todo lo que cambia el mundo pasa por acá: sumar a una lista, guardar una
+//  Todo lo que cambia el mundo pasa por aquí: sumar a una lista, guardar una
 //  receta, publicar un comentario, consumir cuota. Las vistas no mutan colecciones
 //  por su cuenta — así el metering, los puntos y la persistencia no se pueden
 //  "olvidar" en una pantalla nueva.
@@ -273,6 +273,13 @@ final class AppEnvironment {
 
     // MARK: - Recetas
 
+    /// Resuelve una receta por id contra el estado vivo. Las vistas de detalle
+    /// navegan con una copia, y esa copia se queda vieja en cuanto la receta
+    /// cambia debajo (por ejemplo al publicarla).
+    func recipe(for id: Recipe.ID) -> Recipe? {
+        feed.first { $0.id == id } ?? lastGeneration.first { $0.id == id }
+    }
+
     func isSaved(_ recipe: Recipe) -> Bool {
         savedRecipeIDs.contains(recipe.id)
     }
@@ -313,6 +320,63 @@ final class AppEnvironment {
         ))
         Haptics.celebrate()
         Task { await save() }
+    }
+
+    // MARK: - Publicar una receta propia
+
+    enum PublishResult: Equatable {
+        case published
+        case rejected(String)
+    }
+
+    /// Convierte una receta generada por IA en una receta de la comunidad.
+    ///
+    /// Hasta que esto pasa, la receta es privada: se generó contra la despensa
+    /// de una persona concreta y no tiene sentido que otros la comenten. Al
+    /// publicarla se resetean los contadores sociales — heredar valoraciones
+    /// que nadie dio sería inventar prueba social.
+    @discardableResult
+    func publishToCommunity(_ recipe: Recipe) -> PublishResult {
+        // Guideline 4.7 + 1.2: lo que escribe el modelo pasa por el mismo
+        // filtro que lo que escribe una persona antes de hacerse público.
+        let screening = moderation.screen("\(recipe.title). \(recipe.subtitle)")
+        guard screening.canPublish else {
+            Haptics.reject()
+            return .rejected(screening.advisory
+                ?? String(localized: "No hemos podido publicar esta receta."))
+        }
+
+        var published = recipe
+        published.source = .community
+        published.authorName = profile.displayName
+        published.authorInitials = profile.initials
+        published.rating = 0
+        published.ratingCount = 0
+        published.savedCount = 0
+        published.createdAt = .now
+
+        withAnimation(Motion.standard) {
+            if let index = feed.firstIndex(where: { $0.id == recipe.id }) {
+                feed[index] = published
+            } else {
+                feed.insert(published, at: 0)
+            }
+            if let index = lastGeneration.firstIndex(where: { $0.id == recipe.id }) {
+                lastGeneration[index] = published
+            }
+        }
+
+        ledger.award(.recipePublished, note: recipe.title)
+        syncProfilePoints()
+        Haptics.celebrate()
+
+        showToast(ToastPayload(
+            message: String(localized: "Receta publicada"),
+            detail: String(localized: "+\(PointsEvent.recipePublished.amount) puntos · \(recipe.title)"),
+            systemImage: "paperplane.fill", accent: .plum
+        ))
+        Task { await save() }
+        return .published
     }
 
     // MARK: - Listas
@@ -372,7 +436,7 @@ final class AppEnvironment {
         addMissingIngredients(from: recipe)
 
         Haptics.commit()
-        showToast(ToastPayload(message: String(localized: "Agendada para cocinar"),
+        showToast(ToastPayload(message: String(localized: "Planificada para cocinar"),
                                detail: recipe.title,
                                systemImage: "frying.pan.fill", accent: .basil))
         Task { await save() }

@@ -204,7 +204,7 @@ struct NutritionScoreRing: View {
 // MARK: - Sparkline
 
 /// Curva de ritmo semanal con relleno degradado, calcada del gráfico "Mood trend"
-/// de la referencia. Sin ejes: sólo la forma y dos etiquetas en los extremos.
+/// de la referencia. Sin ejes: solo la forma y dos etiquetas en los extremos.
 struct SparklineChart: View {
     let values: [CGFloat]       // normalizados 0...1
     var accent: Color = Palette.basil

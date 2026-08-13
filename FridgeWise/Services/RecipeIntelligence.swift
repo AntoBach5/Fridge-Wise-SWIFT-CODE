@@ -31,6 +31,13 @@ struct GenerationPreferences: Sendable, Equatable {
     var servings: Int = 2
     var maxMinutes: Int? = nil
     var tags: Set<RecipeTag> = []
+    /// Lo que el usuario escribe a mano cuando ninguna etiqueta describe lo que
+    /// busca ("algo picante", "sin horno", "para llevar al trabajo").
+    ///
+    /// Se trata como PREFERENCIA, no como filtro: ordena los resultados pero
+    /// nunca deja la pantalla vacía. Lo que sí filtra de forma dura son las
+    /// exclusiones dietarias, porque ahí equivocarse tiene consecuencias.
+    var customRequest: String = ""
     /// Restricciones dietarias del usuario. Se respetan de forma DURA:
     /// si el modelo devuelve algo que las viola, se descarta.
     var exclusions: Set<String> = []
@@ -46,7 +53,7 @@ enum GenerationPhase: Sendable {
 
     var caption: String {
         switch self {
-        case .reading:   String(localized: "Mirando qué tenés")
+        case .reading:   String(localized: "Mirando qué tienes")
         case .composing: String(localized: "Probando combinaciones")
         case .balancing: String(localized: "Equilibrando la nutrición")
         case .ready:     String(localized: "Listo")
@@ -78,7 +85,7 @@ enum GenerationError: LocalizedError {
         case .moderationRejected:
             String(localized: "No pudimos generar una receta segura con esos ingredientes.")
         case .offline:
-            String(localized: "Necesitás conexión para generar recetas nuevas.")
+            String(localized: "Necesitas conexión para generar recetas nuevas.")
         }
     }
 }
@@ -124,6 +131,8 @@ struct MockRecipeGenerator: RecipeGenerating {
                         }
                     }
 
+                    recipes = Self.ranked(recipes, by: preferences.customRequest)
+
                     try Task.checkCancellation()
                     continuation.yield(.ready(recipes))
                     continuation.finish()
@@ -135,5 +144,45 @@ struct MockRecipeGenerator: RecipeGenerating {
             }
             continuation.onTermination = { _ in task.cancel() }
         }
+    }
+
+    // MARK: - Texto libre
+
+    /// Ordena por afinidad con lo que el usuario pidió a mano. Nunca descarta:
+    /// devolver cero recetas porque alguien escribió una palabra rara sería
+    /// castigarlo por usar el campo.
+    private static func ranked(_ recipes: [Recipe], by request: String) -> [Recipe] {
+        let normalized = normalize(request)
+        let terms = Set(
+            normalized
+                .split { !$0.isLetter && !$0.isNumber }
+                .map(String.init)
+                .filter { $0.count > 2 }
+        )
+        guard !terms.isEmpty else { return recipes }
+
+        // `sorted` no es estable en Swift: se ordena por (afinidad, posición
+        // original) para que dos empates no se barajen entre generaciones.
+        return recipes.enumerated()
+            .sorted { lhs, rhs in
+                let left = affinity(of: lhs.element, to: terms)
+                let right = affinity(of: rhs.element, to: terms)
+                return left == right ? lhs.offset < rhs.offset : left > right
+            }
+            .map(\.element)
+    }
+
+    private static func affinity(of recipe: Recipe, to terms: Set<String>) -> Int {
+        let haystack = normalize(
+            ([recipe.title, recipe.subtitle]
+             + recipe.ingredients.map(\.name)
+             + recipe.tags.map(\.title))
+                .joined(separator: " ")
+        )
+        return terms.filter { haystack.contains($0) }.count
+    }
+
+    private static func normalize(_ text: String) -> String {
+        text.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
     }
 }

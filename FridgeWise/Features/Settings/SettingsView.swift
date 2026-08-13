@@ -4,7 +4,7 @@
 //
 //  Ajustes.
 //
-//  Acá viven varias obligaciones de App Store que no se pueden esconder:
+//  Aquí viven varias obligaciones de App Store que no se pueden esconder:
 //  · Gestionar suscripción y restaurar compras (3.1.2)
 //  · Usuarios bloqueados, alcanzables (1.2)
 //  · Borrado de cuenta y datos desde adentro de la app (5.1.1 v)
@@ -38,7 +38,7 @@ struct SettingsView: View {
             }
             .screenPadding()
             .padding(.top, Space.md)
-            .padding(.bottom, Space.tabBarInset)
+            .padding(.bottom, Space.xxl)
         }
         .scrollIndicators(.hidden)
         .editorialScrollFeel()
@@ -181,7 +181,7 @@ struct SettingsView: View {
 
     private var supportSection: some View {
         section(String(localized: "Ayuda")) {
-            row("envelope", String(localized: "Escribinos"), detail: SupportContact.email) {
+            row("envelope", String(localized: "Escríbenos"), detail: SupportContact.email) {
                 guard let url = URL(string: "mailto:\(SupportContact.email)") else { return }
                 openURL(url)
             }
@@ -189,7 +189,7 @@ struct SettingsView: View {
             Hairline(inset: 46)
 
             // El prompt nativo lo limita el sistema a 3 veces al año; no lo
-            // forzamos nunca desde código, sólo cuando el usuario lo pide acá.
+            // forzamos nunca desde código, solo cuando el usuario lo pide aquí.
             row("star", String(localized: "Valorar Fridge Wise")) {
                 requestReview()
             }
@@ -321,7 +321,7 @@ struct BlockedUsersView: View {
                     EmptyStateView(
                         headline: String(localized: "No bloqueaste a"),
                         emphasis: String(localized: "nadie"),
-                        message: String(localized: "Si alguien te molesta, podés bloquearlo desde su comentario. No va a enterarse."),
+                        message: String(localized: "Si alguien te molesta, puedes bloquearlo desde su comentario. No va a enterarse."),
                         systemImage: "hand.raised",
                         accent: Palette.sage,
                         palette: .pantry
@@ -398,7 +398,7 @@ struct DataPrivacyView: View {
             }
             .screenPadding()
             .padding(.top, Space.md)
-            .padding(.bottom, Space.tabBarInset)
+            .padding(.bottom, Space.xxl)
         }
         .scrollIndicators(.hidden)
         .canvasBackground()
@@ -420,7 +420,7 @@ struct DataPrivacyView: View {
             }
             Button(String(localized: "Cancelar"), role: .cancel) {}
         } message: {
-            Text(String(localized: "Se borra tu despensa, listas, recetas guardadas, puntos y comentarios. No se puede deshacer.\n\nSi tenés una suscripción activa, cancelala aparte desde los Ajustes de tu Apple Account: borrar los datos no la cancela."))
+            Text(String(localized: "Se borra tu despensa, listas, recetas guardadas, puntos y comentarios. No se puede deshacer.\n\nSi tienes una suscripción activa, cancélala aparte desde los Ajustes de tu Apple Account: borrar los datos no la cancela."))
         }
         .sheet(item: Binding(
             get: { exportURL.map { ExportFile(url: $0) } },
@@ -438,7 +438,7 @@ struct DataPrivacyView: View {
     private var intro: some View {
         VStack(alignment: .leading, spacing: Space.xs) {
             Text(String(localized: "Todo tuyo")).displayStyle(26)
-            Text(String(localized: "Tu despensa, tus listas y tus puntos viven en este dispositivo. Las fotos que sacás se analizan y se descartan: no las guardamos ni las subimos a ningún lado."))
+            Text(String(localized: "Tu despensa, tus listas y tus puntos viven en este dispositivo. Las fotos que sacas se analizan y se descartan: no las guardamos ni las subimos a ningún lado."))
                 .bodyStyle()
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -516,7 +516,7 @@ struct DataPrivacyView: View {
             .buttonStyle(AccentButtonStyle(accent: Palette.tomato, fullWidth: true))
             .disabled(isDeleting)
 
-            Text(String(localized: "El borrado es inmediato y definitivo. Si preferís que lo hagamos nosotros, escribinos a \(SupportContact.email)."))
+            Text(String(localized: "El borrado es inmediato y definitivo. Si prefieres que lo hagamos nosotros, escríbenos a \(SupportContact.email)."))
                 .font(Typeface.micro)
                 .foregroundStyle(Palette.inkFaint)
                 .multilineTextAlignment(.center)

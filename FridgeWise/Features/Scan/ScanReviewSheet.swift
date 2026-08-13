@@ -76,7 +76,7 @@ struct ScanReviewSheet: View {
                     .squiggleUnderline(Palette.sage, delay: 0.15)
             }
 
-            Text(String(localized: "Sacá lo que no corresponda. Lo que confirmes se suma a tu despensa."))
+            Text(String(localized: "Saca lo que no corresponda. Lo que confirmes se suma a tu despensa."))
                 .bodyStyle()
                 .padding(.top, Space.xxs)
         }
@@ -216,7 +216,7 @@ struct ScanReviewSheet: View {
         }
     }
 
-    // MARK: - Agregar a mano
+    // MARK: - Añadir a mano
 
     private var addManually: some View {
         VStack(alignment: .leading, spacing: Space.sm) {
@@ -224,7 +224,7 @@ struct ScanReviewSheet: View {
                 .screenPadding()
 
             HStack(spacing: Space.xs) {
-                TextField(String(localized: "Agregar ingrediente"), text: $newItemName)
+                TextField(String(localized: "Añadir ingrediente"), text: $newItemName)
                     .font(Typeface.body)
                     .foregroundStyle(Palette.ink)
                     .focused($isAddingFocused)
@@ -246,7 +246,7 @@ struct ScanReviewSheet: View {
                 }
                 .disabled(newItemName.trimmingCharacters(in: .whitespaces).isEmpty)
                 .opacity(newItemName.trimmingCharacters(in: .whitespaces).isEmpty ? 0.4 : 1)
-                .accessibilityLabel(String(localized: "Agregar"))
+                .accessibilityLabel(String(localized: "Añadir"))
             }
             .screenPadding()
         }

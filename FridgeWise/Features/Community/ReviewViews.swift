@@ -74,7 +74,7 @@ struct ReviewRow: View {
             }
             Button(String(localized: "Cancelar"), role: .cancel) {}
         } message: {
-            Text(String(localized: "No vas a ver más sus comentarios ni sus recetas. Podés desbloquearlo desde Ajustes."))
+            Text(String(localized: "No vas a ver más sus comentarios ni sus recetas. Puedes desbloquearlo desde Ajustes."))
         }
     }
 
@@ -154,7 +154,7 @@ struct ReviewRow: View {
         HStack(spacing: 6) {
             Image(systemName: "clock")
                 .font(.system(size: 9, weight: .semibold))
-            Text(String(localized: "En revisión. Sólo vos lo ves por ahora."))
+            Text(String(localized: "En revisión. Solo lo ves tú por ahora."))
                 .font(Typeface.micro)
                 .fontWeight(.medium)
         }
@@ -238,7 +238,7 @@ struct CommunityThreadView: View {
                     EmptyStateView(
                         headline: String(localized: "Nadie comentó"),
                         emphasis: String(localized: "todavía"),
-                        message: String(localized: "Si la cocinaste, contá cómo te fue. Ayuda a que otros se decidan."),
+                        message: String(localized: "Si la cocinaste, cuenta cómo te fue. Ayuda a que otros se decidan."),
                         systemImage: "bubble.left",
                         accent: Palette.plum,
                         palette: .intelligence,

@@ -57,7 +57,7 @@ struct PaywallView: View {
             if app.store.subscriptions.isEmpty {
                 await app.store.loadProducts()
             }
-            // Preseleccionamos el anual sólo porque es el mejor valor real,
+            // Preseleccionamos el anual solo porque es el mejor valor real,
             // y el mensual queda igual de visible. Nada de esconder opciones.
             selected = app.store.subscriptions.first { $0.id == PremiumProduct.yearly.rawValue }
                 ?? app.store.subscriptions.first
@@ -100,7 +100,7 @@ struct PaywallView: View {
                      accent: Palette.turmeric, weight: .tinted)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(String(localized: "Cociná sin")).displayStyle(33)
+                Text(String(localized: "Cocina sin")).displayStyle(33)
                 HStack(spacing: 9) {
                     Text(String(localized: "límites"))
                         .font(Typeface.displayItalic(33))
@@ -225,7 +225,7 @@ struct PaywallView: View {
                             .foregroundStyle(Palette.ink)
 
                         if isYearly {
-                            InfoChip(label: String(localized: "Ahorrás"),
+                            InfoChip(label: String(localized: "Ahorras"),
                                      accent: Palette.basil, weight: .tinted)
                         }
                     }

@@ -30,10 +30,18 @@ struct RootView: View {
             content
                 .ignoresSafeArea(.keyboard, edges: .bottom)
 
+            // La pill solo vive en la raíz de cada sección. En cualquier pantalla
+            // empujada se retira: esas pantallas traen su propia barra de acciones
+            // y su propio botón de volver, y dos barras apiladas se pisan.
             PillTabBar(selection: $selection, isDimmed: isTabBarDimmed) {
                 app.isPresentingScanner = true
             }
             .padding(.bottom, Space.xs)
+            .offset(y: isPushed ? 140 : 0)
+            .opacity(isPushed ? 0 : 1)
+            .allowsHitTesting(!isPushed)
+            .accessibilityHidden(isPushed)
+            .motion(Motion.standard, value: isPushed)
         }
         .toastLayer(app.toast)
         // Escáner: pantalla completa porque es una tarea con cámara — un sheet
@@ -63,6 +71,17 @@ struct RootView: View {
         .onChange(of: selection) { _, _ in
             // Al cambiar de sección la pill vuelve a estado normal.
             withAnimation(Motion.standard) { isTabBarDimmed = false }
+        }
+    }
+
+    /// Profundidad del stack de la sección activa. `> 0` significa que hay una
+    /// pantalla de detalle encima de la raíz.
+    private var isPushed: Bool {
+        switch selection {
+        case .kitchen: !kitchenPath.isEmpty
+        case .recipes: !recipesPath.isEmpty
+        case .lists:   !listsPath.isEmpty
+        case .rewards: !rewardsPath.isEmpty
         }
     }
 
@@ -124,11 +143,11 @@ struct RootView: View {
     private func destination(_ route: Route) -> some View {
         switch route {
         case .recipeDetail(let id):
-            if let recipe = recipe(for: id) {
+            if let recipe = app.recipe(for: id) {
                 RecipeDetailView(recipe: recipe)
             }
         case .communityThread(let id):
-            if let recipe = recipe(for: id) {
+            if let recipe = app.recipe(for: id) {
                 CommunityThreadView(recipe: recipe)
             }
         case .ingredientDetail:
@@ -146,8 +165,4 @@ struct RootView: View {
         }
     }
 
-    private func recipe(for id: Recipe.ID) -> Recipe? {
-        app.feed.first { $0.id == id }
-            ?? app.lastGeneration.first { $0.id == id }
-    }
 }

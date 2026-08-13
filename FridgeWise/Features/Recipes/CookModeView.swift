@@ -2,7 +2,7 @@
 //  CookModeView.swift
 //  FridgeWise
 //
-//  Modo cocina: pasos a pantalla completa mientras cocinás.
+//  Modo cocina: pasos a pantalla completa mientras cocinas.
 //
 //  Restricciones de diseño, todas nacidas de la situación real (manos sucias,
 //  teléfono apoyado a un metro, ruido de fondo):
@@ -184,7 +184,7 @@ struct CookModeView: View {
                             .foregroundStyle(Palette.ink)
                     }
                     Text(secondsRemaining == nil
-                         ? String(localized: "Tocá para arrancar")
+                         ? String(localized: "Toca para arrancar")
                          : String(localized: "Corriendo"))
                         .font(Typeface.micro)
                         .foregroundStyle(Palette.inkFaint)

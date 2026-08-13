@@ -2,8 +2,8 @@
 //  RecipeFeedView.swift
 //  FridgeWise
 //
-//  Feed de recetas con tres pestañas: lo generado para vos, lo de la comunidad
-//  y lo guardado. La publicidad se intercala cada 6 tarjetas y sólo si el plan
+//  Feed de recetas con tres pestañas: lo generado para ti, lo de la comunidad
+//  y lo guardado. La publicidad se intercala cada 6 tarjetas y solo si el plan
 //  lo amerita — la decisión la toma `AdCoordinator`, no esta vista.
 //
 
@@ -23,7 +23,7 @@ struct RecipeFeedView: View {
 
         var title: String {
             switch self {
-            case .forYou:    String(localized: "Para vos")
+            case .forYou:    String(localized: "Para ti")
             case .community: String(localized: "Comunidad")
             case .saved:     String(localized: "Guardadas")
             }
@@ -68,7 +68,7 @@ struct RecipeFeedView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(String(localized: "Qué podés")).displayStyle(31)
+            Text(String(localized: "Qué puedes")).displayStyle(31)
             HStack(spacing: 9) {
                 Text(String(localized: "cocinar"))
                     .font(Typeface.displayItalic(31))
@@ -111,7 +111,7 @@ struct RecipeFeedView: View {
                 .frame(width: 46, height: 46)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(String(localized: "Generar con lo que tenés"))
+                    Text(String(localized: "Generar con lo que tienes"))
                         .font(Typeface.headline)
                         .foregroundStyle(Palette.ink)
                     Text(generateSubtitle)
@@ -218,7 +218,7 @@ struct RecipeFeedView: View {
             EmptyStateView(
                 headline: String(localized: "Todavía no guardaste"),
                 emphasis: String(localized: "nada"),
-                message: String(localized: "Tocá el marcador de cualquier receta y la vas a encontrar acá."),
+                message: String(localized: "Toca el marcador de cualquier receta y la vas a encontrar aquí."),
                 systemImage: "bookmark",
                 accent: Palette.clay,
                 palette: .pantry
@@ -227,7 +227,7 @@ struct RecipeFeedView: View {
             EmptyStateView(
                 headline: String(localized: "La comunidad está"),
                 emphasis: String(localized: "callada"),
-                message: String(localized: "Cuando alguien publique una receta que use lo que tenés, aparece acá."),
+                message: String(localized: "Cuando alguien publique una receta que use lo que tienes, aparece aquí."),
                 systemImage: "person.2",
                 accent: Palette.mist,
                 palette: .intelligence
@@ -236,7 +236,7 @@ struct RecipeFeedView: View {
             EmptyStateView(
                 headline: String(localized: "Nada que sugerir"),
                 emphasis: String(localized: "todavía"),
-                message: String(localized: "Escaneá tu heladera y armamos recetas con lo que haya adentro."),
+                message: String(localized: "Escanea tu nevera y armamos recetas con lo que haya adentro."),
                 systemImage: "viewfinder",
                 accent: Palette.sage,
                 palette: .scanning,

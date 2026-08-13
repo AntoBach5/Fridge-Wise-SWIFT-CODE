@@ -5,11 +5,11 @@
 //  Puntos, nivel y racha.
 //
 //  Postura de producto: la gamificación acompaña, no persigue. Nada de contadores
-//  regresivos que presionan, ni "perdés tu racha en 2 h", ni ruletas. Se premia
+//  regresivos que presionan, ni "pierdes tu racha en 2 h", ni ruletas. Se premia
 //  cocinar y aportar a la comunidad, que es lo que queremos que pase igual.
 //
 //  Guideline 3.1.1: los puntos son moneda virtual consumible. No se transfieren,
-//  no se canjean por dinero, y acá se declara explícitamente que no expiran.
+//  no se canjean por dinero, y aquí se declara explícitamente que no expiran.
 //
 
 import SwiftUI
@@ -328,7 +328,7 @@ struct RewardsView: View {
 
     /// Declaración obligatoria sobre la moneda virtual (Guideline 3.1.1).
     private var fineprint: some View {
-        Text(String(localized: "Los puntos no vencen, no se pueden transferir a otras cuentas ni canjear por dinero. Sólo sirven para desbloquear contenido y funciones dentro de Fridge Wise."))
+        Text(String(localized: "Los puntos no vencen, no se pueden transferir a otras cuentas ni canjear por dinero. Solo sirven para desbloquear contenido y funciones dentro de Fridge Wise."))
             .font(Typeface.micro)
             .foregroundStyle(Palette.inkFaint)
             .fixedSize(horizontal: false, vertical: true)

@@ -12,7 +12,7 @@
 //    al primer segundo quema la única oportunidad y baja la tasa de aceptación.
 //  · NUNCA se bloquea funcionalidad por rechazar el tracking. Condicionar
 //    features al consentimiento es rechazo directo.
-//  · El prompt sólo se puede mostrar con la app en foreground activo.
+//  · El prompt solo se puede mostrar con la app en foreground activo.
 //
 
 import SwiftUI
@@ -58,7 +58,7 @@ final class TrackingConsent {
         didShowPrimer = true
     }
 
-    /// Lanza el prompt del sistema. Llamar SÓLO después de nuestra explicación
+    /// Lanza el prompt del sistema. Llamar SOLO después de nuestra explicación
     /// previa y con la app activa.
     func requestAuthorization() async {
         guard canAskSystemPrompt else { return }
@@ -111,7 +111,7 @@ struct TrackingPrimerView: View {
             }
             .multilineTextAlignment(.center)
 
-            Text(String(localized: "La versión gratuita se sostiene con publicidad. Si nos das permiso, los anuncios son más relevantes y nos pagan mejor, lo que nos deja mantener gratis el escaneo.\n\nSi decís que no, la app funciona exactamente igual: vas a ver los mismos anuncios, pero genéricos."))
+            Text(String(localized: "La versión gratuita se sostiene con publicidad. Si nos das permiso, los anuncios son más relevantes y nos pagan mejor, lo que nos deja mantener gratis el escaneo.\n\nSi dices que no, la app funciona exactamente igual: vas a ver los mismos anuncios, pero genéricos."))
                 .bodyStyle()
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, Space.xs)
@@ -125,7 +125,7 @@ struct TrackingPrimerView: View {
             }
             .padding(.top, Space.xs)
 
-            Text(String(localized: "Nunca vendemos tus fotos ni tu despensa. Podés cambiar esto cuando quieras desde Ajustes."))
+            Text(String(localized: "Nunca vendemos tus fotos ni tu despensa. Puedes cambiar esto cuando quieras desde Ajustes."))
                 .font(Typeface.micro)
                 .foregroundStyle(Palette.inkFaint)
                 .multilineTextAlignment(.center)

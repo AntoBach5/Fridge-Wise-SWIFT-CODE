@@ -7,7 +7,7 @@
 //    fila de círculos de color con etiquetas en versalita → "esta semana" →
 //    tarjeta de observación con voz humana.
 //
-//  Lo que en la referencia son emociones, acá son categorías de la despensa.
+//  Lo que en la referencia son emociones, aquí son categorías de la despensa.
 //  El mapeo es directo y por eso funciona: son 5-7 elementos, cada uno con
 //  un color propio y un conteo, leídos de un vistazo.
 //
@@ -121,7 +121,7 @@ struct KitchenView: View {
 
     private var greeting: String {
         switch Calendar.current.component(.hour, from: .now) {
-        case 5..<12:  String(localized: "Buen día. ¿Qué")
+        case 5..<12:  String(localized: "Buenos días. ¿Qué")
         case 12..<19: String(localized: "Buenas tardes. ¿Qué")
         default:      String(localized: "Buenas noches. ¿Qué")
         }
@@ -207,7 +207,7 @@ struct KitchenView: View {
 
     // MARK: - Observación
 
-    /// La tarjeta "Reflection" de la referencia. Acá es una observación real
+    /// La tarjeta "Reflection" de la referencia. Aquí es una observación real
     /// sobre la despensa, con la palabra clave en cursiva serif.
     private var insightCard: some View {
         SoftCard(tint: insight.accent.color) {
@@ -243,7 +243,7 @@ struct KitchenView: View {
         let expiring = app.expiringSoon
         if let first = expiring.first, expiring.count > 1 {
             return Insight(
-                lead: String(localized: "Tenés \(expiring.count) cosas que vencen pronto, empezando por "),
+                lead: String(localized: "Tienes \(expiring.count) cosas que vencen pronto, empezando por "),
                 emphasis: first.name.lowercased(),
                 tail: String(localized: ". Armemos algo que las rescate antes de que se pierdan."),
                 icon: "clock.badge.exclamationmark",
@@ -262,7 +262,7 @@ struct KitchenView: View {
         return Insight(
             lead: String(localized: "Tu despensa está "),
             emphasis: String(localized: "en orden"),
-            tail: String(localized: ". Buen momento para probar algo nuevo con lo que ya tenés."),
+            tail: String(localized: ". Buen momento para probar algo nuevo con lo que ya tienes."),
             icon: "checkmark.seal",
             accent: .basil
         )
@@ -289,11 +289,11 @@ struct KitchenView: View {
                         .foregroundStyle(Palette.ink)
                         .padding(.bottom, Space.xxs)
 
-                    Text(String(localized: "Escaneá tu heladera"))
+                    Text(String(localized: "Escanea tu nevera"))
                         .font(Typeface.cardTitle)
                         .foregroundStyle(Palette.ink)
 
-                    Text(String(localized: "Una foto y sabemos qué tenés. Tardás menos que en abrir el cajón de las verduras."))
+                    Text(String(localized: "Una foto y sabemos qué tienes. Tardas menos que en abrir el cajón de las verduras."))
                         .font(Typeface.callout)
                         .foregroundStyle(Palette.inkSoft)
                         .multilineTextAlignment(.leading)

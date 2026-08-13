@@ -6,7 +6,7 @@
 //    · Suscripción auto-renovable  → Premium (menos límites, cero anuncios)
 //    · Consumibles                 → packs de puntos
 //
-//  Reglas de App Store implementadas acá (no son opcionales):
+//  Reglas de App Store implementadas aquí (no son opcionales):
 //  · 3.1.1  Todo se cobra por IAP. No hay ni un link a pagar por fuera.
 //  · 3.1.2  Los precios SIEMPRE salen de `product.displayPrice` (localizado y
 //           en la moneda del usuario). Nunca se hardcodea un número.
@@ -39,7 +39,7 @@ final class StoreService {
     var onPointsPurchased: ((Int, String) -> Void)?
 
     /// `nonisolated(unsafe)` para poder cancelarla desde `deinit`, que no está
-    /// aislado al actor. Sólo se escribe en `init` y se lee en `deinit`.
+    /// aislado al actor. Solo se escribe en `init` y se lee en `deinit`.
     nonisolated(unsafe) private var updatesTask: Task<Void, Never>?
 
     // MARK: Ciclo de vida
@@ -150,7 +150,7 @@ final class StoreService {
         await refreshEntitlements()
     }
 
-    /// Acredita el contenido. Los consumibles se entregan acá y sólo acá,
+    /// Acredita el contenido. Los consumibles se entregan aquí y solo aquí,
     /// así una transacción recuperada al reabrir la app también acredita.
     private func deliver(_ transaction: Transaction) async {
         guard transaction.productType == .consumable else { return }

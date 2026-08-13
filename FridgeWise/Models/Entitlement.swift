@@ -6,7 +6,7 @@
 //
 //  Filosofía del límite: el plan gratuito tiene que ser USABLE, no mutilado.
 //  Apple rechaza apps donde la versión gratis es una demo disfrazada, y los
-//  usuarios desinstalan apps que se sienten un rehén. Los límites de acá son
+//  usuarios desinstalan apps que se sienten un rehén. Los límites de aquí son
 //  generosos y se comunican ANTES de que el usuario invierta esfuerzo, nunca
 //  después de que sacó la foto.
 //
@@ -118,7 +118,7 @@ enum PremiumProduct: String, CaseIterable, Identifiable, Sendable {
     }
 
     /// Texto de renovación obligatorio (Guideline 3.1.2). El precio real
-    /// lo pone StoreKit; acá sólo describimos la cadencia.
+    /// lo pone StoreKit; aquí solo describimos la cadencia.
     var renewalDisclosure: String {
         switch self {
         case .monthly:

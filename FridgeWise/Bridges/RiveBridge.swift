@@ -31,7 +31,7 @@ enum RiveAsset {
     case thinking
     /// Confeti de recompensa. SM: "Celebrate" · input: `fire` (trigger)
     case celebration
-    /// Estado vacío de heladera. SM: "Idle" · sin inputs
+    /// Estado vacío de nevera. SM: "Idle" · sin inputs
     case emptyFridge
     /// Llama de racha. SM: "Streak" · input: `days` (number)
     case streak

@@ -11,7 +11,7 @@
 //    revisión → hoja donde el usuario confirma o corrige antes de guardar
 //
 //  El análisis es deliberadamente teatral: no porque tarde, sino porque el
-//  usuario necesita VER que la app miró su heladera. Un spinner de 3 segundos
+//  usuario necesita VER que la app miró su nevera. Un spinner de 3 segundos
 //  y un listado de golpe se siente como magia barata; los pins apareciendo
 //  sobre su propia foto se siente como que algo entendió lo que hay adentro.
 //
@@ -173,7 +173,7 @@ struct ScanFlowView: View {
                 Text(String(localized: "Necesitamos la cámara"))
                     .font(Typeface.display(26))
                     .foregroundStyle(.white)
-                Text(String(localized: "sólo para esto"))
+                Text(String(localized: "solo para esto"))
                     .font(Typeface.displayItalic(26))
                     .foregroundStyle(.white)
             }
@@ -257,7 +257,7 @@ struct ScanFlowView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
 
-                Text(String(localized: "Abrí la puerta del todo y encuadrá los estantes"))
+                Text(String(localized: "Abre la puerta del todo y encuadra los estantes"))
                     .font(Typeface.callout)
                     .foregroundStyle(.white.opacity(0.85))
                     .padding(.horizontal, Space.md)
@@ -306,7 +306,7 @@ struct ScanFlowView: View {
             .motion(Motion.tap, value: camera.isCapturing)
         }
         .disabled(camera.isCapturing)
-        .accessibilityLabel(String(localized: "Sacar foto de la heladera"))
+        .accessibilityLabel(String(localized: "Sacar foto de la nevera"))
     }
 
     // MARK: - Análisis
