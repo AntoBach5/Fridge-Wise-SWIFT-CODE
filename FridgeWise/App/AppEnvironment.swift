@@ -274,6 +274,7 @@ final class AppEnvironment {
         withAnimation(Motion.standard) {
             pantry.removeAll { $0.id == ingredient.id }
         }
+        Haptics.tick()
         Task { await save() }
     }
 
@@ -318,14 +319,6 @@ final class AppEnvironment {
             systemImage: isNew ? "plus.circle.fill" : "checkmark",
             accent: ingredient.category.accent
         ))
-        Task { await save() }
-    }
-
-    func removeIngredient(_ ingredient: Ingredient) {
-        withAnimation(Motion.standard) {
-            pantry.removeAll { $0.id == ingredient.id }
-        }
-        Haptics.tick()
         Task { await save() }
     }
 
