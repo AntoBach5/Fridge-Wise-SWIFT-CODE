@@ -20,6 +20,9 @@ struct KitchenView: View {
     @Binding var isTabBarDimmed: Bool
 
     @State private var selectedDay = Date()
+    @State private var isCalendarExpanded = false
+    @State private var isPickingRecipe = false
+    @State private var editingIngredient: IngredientEditorSheet.Target?
 
     var body: some View {
         ScrollView {
@@ -50,6 +53,20 @@ struct KitchenView: View {
         .editorialScrollFeel()
         .canvasBackground()
         .toolbar(.hidden, for: .navigationBar)
+        .sheet(isPresented: $isPickingRecipe) {
+            RecipePickerSheet(day: selectedDay) { recipe in
+                app.schedulePlan(for: recipe, on: selectedDay)
+            }
+            .presentationDetents([.large])
+            .presentationCornerRadius(Radius.sheet)
+            .presentationBackground(Palette.canvas)
+        }
+        .sheet(item: $editingIngredient) { target in
+            IngredientEditorSheet(target: target)
+                .presentationDetents([.large])
+                .presentationCornerRadius(Radius.sheet)
+                .presentationBackground(Palette.canvas)
+        }
     }
 
     // MARK: - Encabezado
@@ -138,6 +155,7 @@ struct KitchenView: View {
                     ForEach(populatedCategories, id: \.category) { entry in
                         categoryOrb(entry.category, count: entry.count)
                     }
+                    addIngredientOrb
                 }
                 .padding(.horizontal, Space.screen)
             }
@@ -151,6 +169,34 @@ struct KitchenView: View {
             let count = app.pantry.filter { $0.category == category }.count
             return count > 0 ? (category, count) : nil
         }
+    }
+
+    /// Cierra la constelación. Un contorno en vez de un relleno: no es una
+    /// categoría más, es la puerta para arreglar lo que el escáner no vio.
+    private var addIngredientOrb: some View {
+        Button {
+            Haptics.select()
+            editingIngredient = .new
+        } label: {
+            VStack(spacing: Space.xs) {
+                ZStack {
+                    Circle()
+                        .strokeBorder(Palette.inkFaint.opacity(0.35),
+                                      style: StrokeStyle(lineWidth: 1.2, dash: [3, 3]))
+                    Image(systemName: "plus")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(Palette.inkSoft)
+                }
+                .frame(width: 52, height: 52)
+
+                Text(String(localized: "Añadir"))
+                    .eyebrow()
+                    .frame(width: 66)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .buttonStyle(.pressableCard)
+        .accessibilityLabel(String(localized: "Añadir un producto a la despensa"))
     }
 
     private func categoryOrb(_ category: PantryCategory, count: Int) -> some View {
@@ -181,12 +227,142 @@ struct KitchenView: View {
 
     private var weekSection: some View {
         VStack(alignment: .leading, spacing: Space.sm) {
-            SectionHeader(String(localized: "Esta semana"))
-                .screenPadding()
+            SectionHeader(
+                title: isCalendarExpanded
+                    ? String(localized: "Este mes")
+                    : String(localized: "Esta semana"),
+                accent: Palette.basil
+            ) {
+                Button {
+                    Haptics.select()
+                    withAnimation(Motion.standard) { isCalendarExpanded.toggle() }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(isCalendarExpanded
+                             ? String(localized: "Ver semana")
+                             : String(localized: "Ver mes"))
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 8, weight: .bold))
+                            .rotationEffect(.degrees(isCalendarExpanded ? 180 : 0))
+                    }
+                    .font(Typeface.micro)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(Palette.basil)
+                    .padding(.vertical, 4)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+            .screenPadding()
 
-            WeekStrip(days: weekMarkers, selection: $selectedDay)
+            if isCalendarExpanded {
+                SoftCard(padding: Space.md) {
+                    MonthCalendar(
+                        selection: $selectedDay,
+                        markedDays: app.plannedDays,
+                        accent: Palette.basil
+                    )
+                }
                 .screenPadding()
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            } else {
+                WeekStrip(days: weekMarkers, selection: $selectedDay)
+                    .screenPadding()
+            }
+
+            dayPlans
         }
+    }
+
+    // MARK: - Planes del día
+
+    @ViewBuilder
+    private var dayPlans: some View {
+        let plans = app.cookPlans(on: selectedDay)
+
+        VStack(alignment: .leading, spacing: Space.xs) {
+            if plans.isEmpty {
+                Text(Calendar.current.isDateInToday(selectedDay)
+                     ? String(localized: "Hoy no tienes nada agendado.")
+                     : String(localized: "Sin planes para ese día."))
+                    .font(Typeface.callout)
+                    .foregroundStyle(Palette.inkFaint)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(plans.enumerated()), id: \.element.id) { index, plan in
+                        planRow(plan)
+                        if index < plans.count - 1 {
+                            Hairline(inset: 34)
+                        }
+                    }
+                }
+                .padding(.vertical, Space.xxs)
+                .background { RoundedRectangle.soft(Radius.card).fill(Palette.surface) }
+                .overlay {
+                    RoundedRectangle.soft(Radius.card)
+                        .strokeBorder(Palette.hairline, lineWidth: Stroke.hairline)
+                }
+            }
+
+            Button {
+                Haptics.select()
+                isPickingRecipe = true
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "calendar.badge.plus")
+                        .font(.system(size: 11, weight: .semibold))
+                    Text(String(localized: "Agendar una receta"))
+                        .font(Typeface.micro)
+                        .fontWeight(.semibold)
+                }
+                .foregroundStyle(Palette.basil)
+                .padding(.vertical, 6)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
+        .screenPadding()
+        .motion(Motion.standard, value: plans.count)
+    }
+
+    private func planRow(_ plan: CookPlan) -> some View {
+        HStack(spacing: Space.sm) {
+            AccentDot(color: Palette.basil, size: 8, filled: true)
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(plan.recipeTitle)
+                    .font(Typeface.headline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(Palette.ink)
+                    .lineLimit(1)
+
+                if let remindsAt = plan.remindsAt {
+                    HStack(spacing: 4) {
+                        Image(systemName: "bell")
+                            .font(.system(size: 8, weight: .semibold))
+                        Text(remindsAt.formatted(.dateTime.hour().minute()))
+                            .font(Typeface.micro)
+                    }
+                    .foregroundStyle(Palette.inkFaint)
+                }
+            }
+
+            Spacer(minLength: Space.xs)
+
+            Button {
+                app.removePlan(plan)
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(Palette.inkFaint)
+                    .frame(width: 30, height: 30)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(String(localized: "Quitar del calendario"))
+        }
+        .padding(.horizontal, Space.md)
+        .padding(.vertical, 10)
     }
 
     private var weekMarkers: [WeekStrip.DayMarker] {
@@ -217,6 +393,30 @@ struct KitchenView: View {
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(insight.accent.color)
                     Text(String(localized: "Observación")).eyebrow(insight.accent.color)
+
+                    Spacer(minLength: Space.xs)
+
+                    // La observación se calcula con lo que hay cargado. Si está
+                    // mal, se corrige desde el mismo sitio donde se lee.
+                    Button {
+                        Haptics.select()
+                        editingIngredient = .new
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 9, weight: .bold))
+                            Text(String(localized: "Producto"))
+                                .font(Typeface.micro)
+                                .fontWeight(.semibold)
+                        }
+                        .foregroundStyle(insight.accent.color)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 5)
+                        .background { Capsule().fill(insight.accent.color.opacity(0.12)) }
+                        .contentShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(String(localized: "Añadir un producto a la despensa"))
                 }
 
                 (Text(insight.lead)
@@ -317,9 +517,25 @@ struct KitchenView: View {
     private var rescueSection: some View {
         VStack(alignment: .leading, spacing: Space.sm) {
             SectionHeader(title: String(localized: "Usar pronto"), accent: Palette.tomato) {
-                Text("\(app.expiringSoon.count)")
-                    .font(Typeface.percentage)
-                    .foregroundStyle(Palette.tomato)
+                HStack(spacing: Space.xs) {
+                    Text("\(app.expiringSoon.count)")
+                        .font(Typeface.percentage)
+                        .foregroundStyle(Palette.tomato)
+
+                    Button {
+                        Haptics.select()
+                        editingIngredient = .new
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(Palette.tomato)
+                            .frame(width: 26, height: 26)
+                            .background { Circle().fill(Palette.tomato.opacity(0.12)) }
+                            .frame(width: 44, height: 44, alignment: .trailing)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(String(localized: "Añadir un producto"))
+                }
             }
             .screenPadding()
 
@@ -343,33 +559,46 @@ struct KitchenView: View {
         }
     }
 
+    /// Tocar la fila abre el editor. Es donde el usuario se da cuenta de que la
+    /// fecha está mal — que es justo cuando tiene que poder arreglarla.
     private func expiringRow(_ item: Ingredient) -> some View {
-        HStack(spacing: Space.sm) {
-            AccentDot(color: item.freshness.accent.color, size: 8)
+        Button {
+            Haptics.select()
+            editingIngredient = .existing(item)
+        } label: {
+            HStack(spacing: Space.sm) {
+                AccentDot(color: item.freshness.accent.color, size: 8)
 
-            VStack(alignment: .leading, spacing: 1) {
-                Text(item.name)
-                    .font(Typeface.headline)
-                    .fontWeight(.medium)
-                    .foregroundStyle(Palette.ink)
-                if let quantity = item.quantity {
-                    Text(quantity)
-                        .font(Typeface.micro)
-                        .foregroundStyle(Palette.inkFaint)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(item.name)
+                        .font(Typeface.headline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(Palette.ink)
+                    if let quantity = item.quantity {
+                        Text(quantity)
+                            .font(Typeface.micro)
+                            .foregroundStyle(Palette.inkFaint)
+                    }
                 }
+
+                Spacer(minLength: Space.xs)
+
+                Text(item.expiryDescription ?? "")
+                    .font(Typeface.micro)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(item.freshness.accent.color)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(Palette.inkFaint)
             }
-
-            Spacer(minLength: Space.xs)
-
-            Text(item.expiryDescription ?? "")
-                .font(Typeface.micro)
-                .fontWeight(.semibold)
-                .foregroundStyle(item.freshness.accent.color)
+            .padding(.horizontal, Space.md)
+            .padding(.vertical, 11)
+            .contentShape(Rectangle())
         }
-        .padding(.horizontal, Space.md)
-        .padding(.vertical, 11)
-        .contentShape(Rectangle())
+        .buttonStyle(.pressableCard)
         .accessibilityElement(children: .combine)
+        .accessibilityHint(String(localized: "Toca para corregir cantidad o fecha"))
     }
 
     // MARK: - Ritmo

@@ -117,8 +117,13 @@ modelo real.
 |---|---|---|
 | `FridgeScanning` | `MockFridgeScanner` | Enchufar Vision + un modelo de detección, o un endpoint propio. Ya emite fases, confianza por ítem y cajas de detección. |
 | `RecipeGenerating` | `MockRecipeGenerator` | Enchufar el modelo. Ya emite fases de progreso y respeta exclusiones dietarias como filtro duro. |
+| `RecipeVetting` | `HeuristicRecipeVetter` | Enchufar el modelo. Ya comprueba lo que importa: que los pasos usen los ingredientes, que los tiempos sean plausibles y que no haya consejo alimentario peligroso. |
 | `AdProviding` | `HouseAdProvider` | Enchufar AdMob u otra red. Las **reglas** ya están y no las decide el SDK. |
 | Backend de moderación | Filtro local | El filtro del cliente da feedback instantáneo; la decisión final va en el servidor. |
+
+Los **recordatorios de cocina sí son reales** (`UNUserNotificationCenter`). El permiso
+se pide al agendar la primera receta, nunca al abrir la app, y si el usuario dice que
+no el plan se guarda igual — simplemente no avisa.
 
 La **cámara sí es real** (`AVFoundation`, con detección de poca luz, tap-to-focus y
 manejo completo de permisos). En el simulador cae a un fondo animado y el flujo de

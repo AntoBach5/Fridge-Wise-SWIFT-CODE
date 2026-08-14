@@ -27,12 +27,17 @@ struct ReviewRow: View {
         VStack(alignment: .leading, spacing: Space.xs) {
             header
 
-            Text(review.body)
-                .font(Typeface.body)
-                .foregroundStyle(Palette.ink)
-                .lineSpacing(4)
-                .lineLimit(compact ? 3 : nil)
-                .fixedSize(horizontal: false, vertical: true)
+            // En el detalle de receta los comentarios van recortados para que
+            // quepan varios; el botón de expandir sale solo si el texto se cortó.
+            if compact {
+                ExpandableText(text: review.body, collapsedLines: 3)
+            } else {
+                Text(review.body)
+                    .font(Typeface.body)
+                    .foregroundStyle(Palette.ink)
+                    .lineSpacing(4)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             if let variation = review.variationNote {
                 HStack(spacing: 5) {

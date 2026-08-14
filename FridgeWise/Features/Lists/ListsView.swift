@@ -70,24 +70,37 @@ struct ListsView: View {
 
             Spacer()
 
-            if !completedItems.isEmpty {
-                Menu {
-                    Button(role: .destructive) {
-                        app.clearCompleted(in: kind)
-                    } label: {
-                        Label(String(localized: "Borrar completados"), systemImage: "trash")
-                    }
+            // El botón está siempre: aparecía y desaparecía según hubiera o no
+            // completados, y eso hacía que se esfumara justo al usarlo. Un
+            // control que se mueve bajo el dedo se siente roto aunque no lo esté.
+            Menu {
+                Button(role: .destructive) {
+                    app.clearCompleted(in: kind)
                 } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Palette.ink)
-                        .frame(width: 34, height: 34)
-                        .background { Circle().fill(Palette.surface) }
-                        .overlay { Circle().strokeBorder(Palette.hairline, lineWidth: Stroke.hairline) }
-                        .frame(width: 44, height: 44)
+                    Label(String(localized: "Borrar completados"), systemImage: "trash")
                 }
-                .accessibilityLabel(String(localized: "Más opciones"))
+                .disabled(completedItems.isEmpty)
+
+                Button {
+                    Haptics.select()
+                    withAnimation(Motion.standard) { showsCompleted.toggle() }
+                } label: {
+                    Label(showsCompleted
+                          ? String(localized: "Ocultar completados")
+                          : String(localized: "Ver completados"),
+                          systemImage: showsCompleted ? "eye.slash" : "eye")
+                }
+                .disabled(completedItems.isEmpty)
+            } label: {
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(completedItems.isEmpty ? Palette.inkFaint : Palette.ink)
+                    .frame(width: 34, height: 34)
+                    .background { Circle().fill(Palette.surface) }
+                    .overlay { Circle().strokeBorder(Palette.hairline, lineWidth: Stroke.hairline) }
+                    .frame(width: 44, height: 44)
             }
+            .accessibilityLabel(String(localized: "Más opciones"))
         }
         .screenPadding()
     }
@@ -338,8 +351,14 @@ struct SwipeableRow<Content: View>: View {
 
     @State private var offset: CGFloat = 0
     @State private var isCommitting = false
+    @State private var axis: Axis = .undecided
 
     private let actionWidth: CGFloat = 76
+
+    /// Una vez que el arrastre se decide por un eje, no cambia hasta soltar.
+    /// Sin esto, un scroll vertical con un poco de diagonal terminaba abriendo
+    /// filas a mitad de camino.
+    private enum Axis { case undecided, horizontal, vertical }
 
     var body: some View {
         ZStack(alignment: .trailing) {
@@ -362,8 +381,18 @@ struct SwipeableRow<Content: View>: View {
             content
                 .offset(x: offset)
                 .gesture(
-                    DragGesture(minimumDistance: 12)
+                    DragGesture(minimumDistance: 14)
                         .onChanged { value in
+                            if axis == .undecided {
+                                let horizontal = abs(value.translation.width)
+                                let vertical = abs(value.translation.height)
+                                // Hasta que el gesto no tiene dirección clara no
+                                // se le asigna eje: decidir con 2 px es adivinar.
+                                guard horizontal + vertical > 8 else { return }
+                                axis = horizontal > vertical * 1.5 ? .horizontal : .vertical
+                            }
+                            guard axis == .horizontal else { return }
+
                             guard value.translation.width < 0 else {
                                 offset = min(0, value.translation.width * 0.2)
                                 return
@@ -375,6 +404,9 @@ struct SwipeableRow<Content: View>: View {
                                 : raw
                         }
                         .onEnded { value in
+                            defer { axis = .undecided }
+                            guard axis == .horizontal else { return }
+
                             let shouldDelete = value.translation.width < -actionWidth * 2.2
                             if shouldDelete {
                                 commit()

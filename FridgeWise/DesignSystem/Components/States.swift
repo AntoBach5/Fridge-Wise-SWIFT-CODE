@@ -10,6 +10,77 @@
 
 import SwiftUI
 
+// MARK: - Texto expandible
+
+/// Texto que se corta a N líneas y ofrece expandirse **solo si de verdad se cortó**.
+///
+/// La detección es real, no por longitud de caracteres: `ViewThatFits` intenta
+/// colocar el texto entero en el alto disponible y, si no cabe, cae a la rama
+/// vacía que marca el truncado. Mostrar "Leer más" bajo un texto que ya se ve
+/// completo es ruido, y no mostrarlo cuando falta media frase es peor.
+struct ExpandableText: View {
+
+    let text: String
+    var collapsedLines: Int = 3
+    var font: Font = Typeface.body
+    var lineSpacing: CGFloat = 4
+    var accent: Color = Palette.plum
+
+    @State private var isExpanded = false
+    @State private var isTruncated = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(text)
+                .font(font)
+                .foregroundStyle(Palette.ink)
+                .lineSpacing(lineSpacing)
+                .lineLimit(isExpanded ? nil : collapsedLines)
+                .fixedSize(horizontal: false, vertical: true)
+                .background {
+                    ViewThatFits(in: .vertical) {
+                        Text(text)
+                            .font(font)
+                            .lineSpacing(lineSpacing)
+                            .hidden()
+                        Color.clear.task { isTruncated = true }
+                    }
+                }
+
+            if isTruncated {
+                Button {
+                    Haptics.select()
+                    withAnimation(Motion.standard) { isExpanded.toggle() }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(isExpanded
+                             ? String(localized: "Leer menos")
+                             : String(localized: "Leer más"))
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 8, weight: .bold))
+                            .rotationEffect(.degrees(isExpanded ? 180 : 0))
+                    }
+                    .font(Typeface.micro)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(accent)
+                    .padding(.vertical, 4)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(text)
+        .accessibilityHint(isTruncated && !isExpanded
+                           ? String(localized: "Toca dos veces para leer el texto completo")
+                           : "")
+        .accessibilityAddTraits(isTruncated ? .isButton : [])
+        .accessibilityAction {
+            if isTruncated { withAnimation(Motion.standard) { isExpanded.toggle() } }
+        }
+    }
+}
+
 // MARK: - Vacío
 
 struct EmptyStateView: View {

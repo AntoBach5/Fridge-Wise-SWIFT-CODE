@@ -17,6 +17,7 @@ struct RecipeFeedView: View {
     @State private var scope: Scope = .forYou
     @State private var activeTags: Set<RecipeTag> = []
     @State private var isGenerating = false
+    @State private var isComposing = false
 
     enum Scope: String, CaseIterable, Hashable {
         case forYou, community, saved
@@ -36,12 +37,17 @@ struct RecipeFeedView: View {
                 header
                 segments
                 generateCard
+                composeCard
 
                 if scope != .saved {
                     filterRail
                 }
 
                 feed
+
+                if scope == .saved {
+                    recentlyViewedSection
+                }
             }
             .padding(.top, Space.xs)
             .padding(.bottom, Space.tabBarInset)
@@ -54,6 +60,12 @@ struct RecipeFeedView: View {
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $isGenerating) {
             GenerationSheet()
+                .presentationDetents([.large])
+                .presentationCornerRadius(Radius.sheet)
+                .presentationBackground(Palette.canvas)
+        }
+        .sheet(isPresented: $isComposing) {
+            RecipeComposerSheet()
                 .presentationDetents([.large])
                 .presentationCornerRadius(Radius.sheet)
                 .presentationBackground(Palette.canvas)
@@ -151,6 +163,79 @@ struct RecipeFeedView: View {
             : String(localized: "Te quedan \(remaining) generaciones hoy")
     }
 
+    /// Más discreta que la de generar a propósito: escribir una receta entera es
+    /// una acción de minoría, y competir con el botón principal la haría ruido.
+    private var composeCard: some View {
+        Button {
+            Haptics.select()
+            isComposing = true
+        } label: {
+            HStack(spacing: Space.sm) {
+                Image(systemName: "square.and.pencil")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Palette.mist)
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(String(localized: "Escribir una receta tuya"))
+                        .font(Typeface.action)
+                        .foregroundStyle(Palette.ink)
+                    Text(String(localized: "La revisamos y la publicas en la comunidad"))
+                        .font(Typeface.micro)
+                        .foregroundStyle(Palette.inkFaint)
+                }
+
+                Spacer(minLength: 0)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Palette.inkFaint)
+            }
+            .padding(.horizontal, Space.md)
+            .padding(.vertical, 13)
+            .background { RoundedRectangle.soft(Radius.card).fill(Palette.surface.opacity(0.7)) }
+            .overlay {
+                RoundedRectangle.soft(Radius.card)
+                    .strokeBorder(Palette.hairline, lineWidth: Stroke.hairline)
+            }
+        }
+        .buttonStyle(.pressableCard)
+        .screenPadding()
+    }
+
+    // MARK: - Vistas hace poco
+
+    @ViewBuilder
+    private var recentlyViewedSection: some View {
+        // Lo ya guardado no se repite: estaría dos veces en la misma pantalla.
+        let recent = app.recentlyViewed.filter { !app.savedRecipeIDs.contains($0.id) }
+
+        if !recent.isEmpty {
+            VStack(alignment: .leading, spacing: Space.sm) {
+                SectionHeader(title: String(localized: "Vistas hace poco"), accent: Palette.mist) {
+                    Text("\(recent.count)")
+                        .font(Typeface.percentage)
+                        .foregroundStyle(Palette.inkFaint)
+                }
+                .screenPadding()
+
+                ScrollView(.horizontal) {
+                    HStack(spacing: Space.sm) {
+                        ForEach(recent.prefix(10)) { recipe in
+                            NavigationLink(value: Route.recipeDetail(recipe.id)) {
+                                RecipeCard(recipe: recipe, style: .rail)
+                            }
+                            .buttonStyle(.pressableCard)
+                        }
+                    }
+                    .padding(.horizontal, Space.screen)
+                }
+                .scrollIndicators(.hidden)
+                .tightHorizontalRail()
+            }
+            .padding(.top, Space.xs)
+        }
+    }
+
     // MARK: - Filtros
 
     private var filterRail: some View {
@@ -204,7 +289,9 @@ struct RecipeFeedView: View {
         case .community:
             app.feed.filter { $0.source == .community }
         case .saved:
-            app.feed.filter { app.savedRecipeIDs.contains($0.id) }
+            // Sale de la biblioteca, no del feed: una receta generada y guardada
+            // no está en el feed, y antes desaparecía al reabrir la app.
+            app.savedRecipes
         }
 
         guard !activeTags.isEmpty else { return base }

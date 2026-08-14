@@ -21,6 +21,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 #if canImport(SwiftUIIntrospect)
 import SwiftUIIntrospect
@@ -85,15 +86,11 @@ extension View {
 
     /// Permite el gesto de "swipe back" incluso cuando ocultamos el back button
     /// nativo por uno custom. Sin esto los usuarios quedan atrapados en el detalle.
+    ///
+    /// Aplicar sobre el `NavigationStack`, no sobre la pantalla de detalle: el
+    /// delegado tiene que sobrevivir a que el detalle se cierre.
     func keepInteractivePopGesture() -> some View {
-        #if canImport(SwiftUIIntrospect)
-        self.introspect(.navigationStack, on: .iOS(.v17, .v18)) { navigationController in
-            navigationController.interactivePopGestureRecognizer?.isEnabled = true
-            navigationController.interactivePopGestureRecognizer?.delegate = nil
-        }
-        #else
-        self
-        #endif
+        modifier(InteractivePopGesture())
     }
 
     /// Oculta la tab bar nativa por completo: la app usa la pill custom.
@@ -122,6 +119,60 @@ extension View {
         }
         #else
         self.safeAreaInset(edge: .bottom) { Color.clear.frame(height: height) }
+        #endif
+    }
+}
+
+// MARK: - Swipe-back
+
+/// Delegado propio para el gesto de volver atrás.
+///
+/// El atajo habitual es poner `interactivePopGestureRecognizer.delegate = nil`,
+/// y es justamente lo que hacía que la pantalla se arrastrara de lado durante un
+/// scroll vertical: sin delegado, el reconocedor acepta CUALQUIER arrastre, en
+/// cualquier dirección, incluso en la raíz del stack donde no hay nada que
+/// desapilar. El resultado es una pantalla que se mueve sola y no vuelve a nada.
+///
+/// Este delegado impone las dos condiciones que el sistema aplicaría de fábrica:
+/// que haya algo detrás, y que el gesto sea claramente horizontal hacia la derecha.
+final class InteractivePopGestureDelegate: NSObject, UIGestureRecognizerDelegate {
+
+    weak var navigationController: UINavigationController?
+
+    func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool {
+        guard let navigationController,
+              navigationController.viewControllers.count > 1,
+              let pan = recognizer as? UIPanGestureRecognizer
+        else { return false }
+
+        let translation = pan.translation(in: pan.view)
+        return translation.x > abs(translation.y)
+    }
+
+    /// El swipe-back y el scroll vertical no compiten: o uno o el otro.
+    func gestureRecognizer(
+        _ recognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer
+    ) -> Bool {
+        false
+    }
+}
+
+private struct InteractivePopGesture: ViewModifier {
+
+    /// `@State` mantiene vivo al delegado mientras exista el stack: el
+    /// `UIGestureRecognizer` lo referencia de forma débil.
+    @State private var delegate = InteractivePopGestureDelegate()
+
+    func body(content: Content) -> some View {
+        #if canImport(SwiftUIIntrospect)
+        content.introspect(.navigationStack, on: .iOS(.v17, .v18)) { navigationController in
+            delegate.navigationController = navigationController
+            navigationController.interactivePopGestureRecognizer?.isEnabled = true
+            navigationController.interactivePopGestureRecognizer?.delegate = delegate
+        }
+        #else
+        content
         #endif
     }
 }

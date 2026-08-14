@@ -41,6 +41,21 @@ final class AppEnvironment {
     /// con su propia entrada animada tras el escaneo.
     var lastGeneration: [Recipe] = []
 
+    /// Biblioteca durable: toda receta que el usuario abrió, guardó o publicó.
+    ///
+    /// Las recetas generadas no viven en ningún servidor — se inventan contra la
+    /// despensa del momento. Si no las archivamos nosotros, guardar una y cerrar
+    /// la app dejaba un marcador apuntando a nada.
+    var library: [Recipe] = []
+
+    /// Ids en orden de visita, del más reciente al más antiguo.
+    var recentlyViewedIDs: [Recipe.ID] = []
+
+    private let recentlyViewedLimit = 24
+
+    /// Recetas agendadas a un día concreto, con recordatorio opcional.
+    var plans: [CookPlan] = []
+
     // MARK: - Estado de UI
 
     var toast: ToastPayload?
@@ -125,6 +140,10 @@ final class AppEnvironment {
         rolloverMeterIfNeeded()
         registerDailyVisit()
         await load()
+
+        // Las notificaciones pendientes no sobreviven a reinstalar la app ni a
+        // restaurar un backup: se vuelven a programar contra lo que hay guardado.
+        await CookPlanScheduler.resync(plans)
     }
 
     func onForeground() {
@@ -271,13 +290,87 @@ final class AppEnvironment {
             .sorted { ($0.expiresAt ?? .distantFuture) < ($1.expiresAt ?? .distantFuture) }
     }
 
+    // MARK: - Despensa a mano
+
+    /// Añade o corrige un ingrediente cargado por el usuario.
+    ///
+    /// Toda la app se apoya en que la despensa sea cierta: las recetas que
+    /// sugerimos, los avisos de caducidad y lo que va a la lista de la compra.
+    /// El escáner no ve la fecha impresa en el envase, así que esta es la única
+    /// vía para que ese dato sea real.
+    func upsertIngredient(_ ingredient: Ingredient) {
+        let isNew = !pantry.contains { $0.id == ingredient.id }
+
+        withAnimation(Motion.standard) {
+            if let index = pantry.firstIndex(where: { $0.id == ingredient.id }) {
+                pantry[index] = ingredient
+            } else {
+                pantry.append(ingredient)
+            }
+        }
+
+        Haptics.commit()
+        showToast(ToastPayload(
+            message: isNew
+                ? String(localized: "Añadido a la despensa")
+                : String(localized: "Actualizado"),
+            detail: ingredient.name,
+            systemImage: isNew ? "plus.circle.fill" : "checkmark",
+            accent: ingredient.category.accent
+        ))
+        Task { await save() }
+    }
+
+    func removeIngredient(_ ingredient: Ingredient) {
+        withAnimation(Motion.standard) {
+            pantry.removeAll { $0.id == ingredient.id }
+        }
+        Haptics.tick()
+        Task { await save() }
+    }
+
     // MARK: - Recetas
 
     /// Resuelve una receta por id contra el estado vivo. Las vistas de detalle
     /// navegan con una copia, y esa copia se queda vieja en cuanto la receta
     /// cambia debajo (por ejemplo al publicarla).
     func recipe(for id: Recipe.ID) -> Recipe? {
-        feed.first { $0.id == id } ?? lastGeneration.first { $0.id == id }
+        feed.first { $0.id == id }
+            ?? lastGeneration.first { $0.id == id }
+            ?? library.first { $0.id == id }
+    }
+
+    /// Mete la receta en la biblioteca durable sin duplicarla.
+    private func archive(_ recipe: Recipe) {
+        if let index = library.firstIndex(where: { $0.id == recipe.id }) {
+            library[index] = recipe
+        } else {
+            library.append(recipe)
+        }
+    }
+
+    /// Registra que el usuario abrió una receta. Alimenta "Vistas hace poco" y,
+    /// de paso, la archiva: una generada que miraste una vez ya merece sobrevivir.
+    func noteViewed(_ recipe: Recipe) {
+        archive(recipe)
+        guard recentlyViewedIDs.first != recipe.id else { return }
+
+        recentlyViewedIDs.removeAll { $0 == recipe.id }
+        recentlyViewedIDs.insert(recipe.id, at: 0)
+        if recentlyViewedIDs.count > recentlyViewedLimit {
+            recentlyViewedIDs.removeLast(recentlyViewedIDs.count - recentlyViewedLimit)
+        }
+        Task { await save() }
+    }
+
+    var recentlyViewed: [Recipe] {
+        recentlyViewedIDs.compactMap { recipe(for: $0) }
+    }
+
+    var savedRecipes: [Recipe] {
+        savedRecipeIDs
+            .compactMap { recipe(for: $0) }
+            .sorted { $0.createdAt > $1.createdAt }
     }
 
     func isSaved(_ recipe: Recipe) -> Bool {
@@ -291,6 +384,7 @@ final class AppEnvironment {
         } else {
             guard consume(.savedRecipe) else { return }
             savedRecipeIDs.insert(recipe.id)
+            archive(recipe)
             Haptics.tick()
             showToast(ToastPayload(message: String(localized: "Guardada"),
                                    detail: recipe.title,
@@ -364,6 +458,7 @@ final class AppEnvironment {
             if let index = lastGeneration.firstIndex(where: { $0.id == recipe.id }) {
                 lastGeneration[index] = published
             }
+            archive(published)
         }
 
         ledger.award(.recipePublished, note: recipe.title)
@@ -439,6 +534,65 @@ final class AppEnvironment {
         showToast(ToastPayload(message: String(localized: "Planificada para cocinar"),
                                detail: recipe.title,
                                systemImage: "frying.pan.fill", accent: .basil))
+        Task { await save() }
+    }
+
+    // MARK: - Calendario
+
+    func cookPlans(on day: Date) -> [CookPlan] {
+        let target = Calendar.current.startOfDay(for: day)
+        return plans
+            .filter { $0.day == target }
+            .sorted { $0.createdAt < $1.createdAt }
+    }
+
+    /// Días con algo agendado, para pintar los puntos del calendario.
+    var plannedDays: Set<Date> {
+        Set(plans.map(\.day))
+    }
+
+    /// Agenda una receta para un día y programa el aviso de ese día.
+    func schedulePlan(for recipe: Recipe, on day: Date, remind: Bool = true) {
+        let target = Calendar.current.startOfDay(for: day)
+
+        guard !plans.contains(where: { $0.recipeID == recipe.id && $0.day == target }) else {
+            showToast(ToastPayload(
+                message: String(localized: "Ya estaba agendada"),
+                detail: recipe.title,
+                systemImage: "calendar", accent: .basil
+            ))
+            return
+        }
+
+        let plan = CookPlan(
+            recipeID: recipe.id,
+            recipeTitle: recipe.title,
+            day: target,
+            remindsAt: remind ? CookPlan.defaultReminder(for: target) : nil
+        )
+
+        withAnimation(Motion.standard) { plans.append(plan) }
+        // Si se agenda, se archiva: en dos semanas esa receta generada tiene que
+        // seguir existiendo cuando llegue el recordatorio.
+        archive(recipe)
+
+        Haptics.commit()
+        showToast(ToastPayload(
+            message: String(localized: "Agendada"),
+            detail: target.formatted(.dateTime.weekday(.wide).day().month()),
+            systemImage: "calendar.badge.plus", accent: .basil
+        ))
+
+        Task {
+            await CookPlanScheduler.schedule(plan)
+            await save()
+        }
+    }
+
+    func removePlan(_ plan: CookPlan) {
+        CookPlanScheduler.cancel(plan)
+        withAnimation(Motion.standard) { plans.removeAll { $0.id == plan.id } }
+        Haptics.tick()
         Task { await save() }
     }
 
@@ -616,6 +770,10 @@ final class AppEnvironment {
         savedRecipeIDs = []
         reviewsByRecipe = [:]
         lastGeneration = []
+        library = []
+        recentlyViewedIDs = []
+        await CookPlanScheduler.cancelAll(plans)
+        plans = []
         profile = UserProfile()
         ledger.restore(from: .init(entries: [], balance: 0, lifetimeEarned: 0, activeBenefits: []))
         moderation.restore(from: .init(blockedAuthorIDs: [], reportedReviewIDs: []))
@@ -643,13 +801,25 @@ final class AppEnvironment {
         var savedRecipeIDs: [UUID]
     }
 
+    /// Las recetas van a su propio archivo: son el bloque más grande y el que
+    /// más crece, y no tiene sentido reescribir el perfil entero al abrir una.
+    private struct RecipeArchive: Codable, Sendable {
+        var library: [Recipe]
+        var recentlyViewedIDs: [UUID]
+    }
+
     func save() async {
         let snapshot = Snapshot(profile: profile, pantry: pantry,
                                 listItems: listItems,
                                 savedRecipeIDs: Array(savedRecipeIDs))
         try? await persistence.save(snapshot, to: .profile)
+        try? await persistence.save(
+            RecipeArchive(library: library, recentlyViewedIDs: recentlyViewedIDs),
+            to: .recipes
+        )
         try? await persistence.save(ledger.snapshot(), to: .points)
         try? await persistence.save(moderation.snapshot(), to: .moderation)
+        try? await persistence.save(plans, to: .plans)
     }
 
     func load() async {
@@ -659,11 +829,23 @@ final class AppEnvironment {
             listItems = snapshot.listItems
             savedRecipeIDs = Set(snapshot.savedRecipeIDs)
         }
+        if let archive = await persistence.load(RecipeArchive.self, from: .recipes) {
+            library = archive.library
+            recentlyViewedIDs = archive.recentlyViewedIDs
+
+            // Lo archivado vuelve al feed para que las guardadas y publicadas
+            // sigan siendo navegables desde cualquier pantalla.
+            let known = Set(feed.map(\.id))
+            feed.append(contentsOf: archive.library.filter { !known.contains($0.id) })
+        }
         if let points = await persistence.load(PointsLedger.Snapshot.self, from: .points) {
             ledger.restore(from: points)
         }
         if let mod = await persistence.load(ModerationService.Snapshot.self, from: .moderation) {
             moderation.restore(from: mod)
+        }
+        if let saved = await persistence.load([CookPlan].self, from: .plans) {
+            plans = saved
         }
         syncProfilePoints()
     }

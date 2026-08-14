@@ -90,11 +90,14 @@ struct RootView: View {
     @ViewBuilder
     private var content: some View {
         ZStack {
+            // El swipe-back se configura por stack, no por pantalla: el delegado
+            // del gesto tiene que seguir vivo cuando el detalle se cierra.
             tabContainer(.kitchen) {
                 NavigationStack(path: $kitchenPath) {
                     KitchenView(isTabBarDimmed: $isTabBarDimmed)
                         .navigationDestination(for: Route.self, destination: destination)
                 }
+                .keepInteractivePopGesture()
             }
 
             tabContainer(.recipes) {
@@ -102,6 +105,7 @@ struct RootView: View {
                     RecipeFeedView(isTabBarDimmed: $isTabBarDimmed)
                         .navigationDestination(for: Route.self, destination: destination)
                 }
+                .keepInteractivePopGesture()
             }
 
             tabContainer(.lists) {
@@ -109,6 +113,7 @@ struct RootView: View {
                     ListsView(isTabBarDimmed: $isTabBarDimmed)
                         .navigationDestination(for: Route.self, destination: destination)
                 }
+                .keepInteractivePopGesture()
             }
 
             tabContainer(.rewards) {
@@ -116,6 +121,7 @@ struct RootView: View {
                     RewardsView(isTabBarDimmed: $isTabBarDimmed)
                         .navigationDestination(for: Route.self, destination: destination)
                 }
+                .keepInteractivePopGesture()
             }
         }
     }

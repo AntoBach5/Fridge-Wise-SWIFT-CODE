@@ -226,4 +226,10 @@ struct Recipe: Identifiable, Hashable, Codable, Sendable {
 
     /// Semilla estable para el gradiente procedural del hero cuando no hay foto.
     var heroSeed: Int { abs(title.hashValue % 360) }
+
+    /// Las recetas que escribe un usuario no traen desglose nutricional, y no
+    /// vamos a inventarlo. El detalle lo dice en vez de pintar un gráfico de ceros.
+    var hasNutritionData: Bool {
+        macros.proteinGrams + macros.carbGrams + macros.fatGrams > 0
+    }
 }

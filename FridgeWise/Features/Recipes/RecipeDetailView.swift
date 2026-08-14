@@ -71,8 +71,10 @@ struct RecipeDetailView: View {
         .editorialScrollFeel()
         .canvasBackground()
         .ignoresSafeArea(edges: .top)
+        // Abrir una receta la archiva. Es lo que hace que una generada siga
+        // existiendo mañana, y lo que alimenta "Vistas hace poco".
+        .task { app.noteViewed(recipe) }
         .toolbar(.hidden, for: .navigationBar)
-        .keepInteractivePopGesture()
         .overlay(alignment: .top) { floatingNav }
         .safeAreaInset(edge: .bottom) { actionBar }
         .fullScreenCover(isPresented: $showsCookMode) {
@@ -292,7 +294,40 @@ struct RecipeDetailView: View {
 
     // MARK: - Nutrición
 
+    @ViewBuilder
     private var nutritionPanel: some View {
+        if recipe.hasNutritionData {
+            nutritionBreakdown
+        } else {
+            nutritionUnavailable
+        }
+    }
+
+    /// Honestidad por encima de completitud: mejor un hueco declarado que un
+    /// anillo inventado. Guideline 1.4.1.
+    private var nutritionUnavailable: some View {
+        SoftCard(padding: Space.md) {
+            HStack(alignment: .top, spacing: Space.sm) {
+                Image(systemName: "chart.pie")
+                    .font(.system(size: 13, weight: .light))
+                    .foregroundStyle(Palette.inkFaint)
+                    .padding(.top, 1)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(String(localized: "Sin desglose nutricional")).eyebrow()
+                    Text(String(localized: "Esta receta la escribió una persona y no trae valores por ración. No los estimamos para no inventarlos."))
+                        .font(Typeface.callout)
+                        .foregroundStyle(Palette.inkSoft)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: 0)
+            }
+        }
+        .screenPadding()
+    }
+
+    private var nutritionBreakdown: some View {
         VStack(alignment: .leading, spacing: Space.md) {
             SectionHeader(String(localized: "Salud nutricional"))
                 .screenPadding()

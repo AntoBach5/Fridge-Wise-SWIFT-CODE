@@ -25,6 +25,11 @@ actor PersistenceStore {
         case profile
         case moderation
         case reviews
+        /// Biblioteca de recetas. Las generadas no existen en ningún servidor:
+        /// si no las guardamos aquí, al cerrar la app se pierden para siempre.
+        case recipes
+        /// Recordatorios de cocina programados en el calendario.
+        case plans
 
         var filename: String { "\(rawValue).json" }
     }
