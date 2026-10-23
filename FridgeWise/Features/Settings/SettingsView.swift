@@ -370,6 +370,7 @@ struct BlockedUsersView: View {
             .padding(.top, Space.md)
         }
         .scrollIndicators(.hidden)
+        .lockedVerticalScroll()
         .canvasBackground()
         .navigationTitle(String(localized: "Bloqueados"))
         .navigationBarTitleDisplayMode(.inline)
@@ -401,6 +402,7 @@ struct DataPrivacyView: View {
             .padding(.bottom, Space.xxl)
         }
         .scrollIndicators(.hidden)
+        .lockedVerticalScroll()
         .canvasBackground()
         .navigationTitle(String(localized: "Tus datos"))
         .navigationBarTitleDisplayMode(.inline)

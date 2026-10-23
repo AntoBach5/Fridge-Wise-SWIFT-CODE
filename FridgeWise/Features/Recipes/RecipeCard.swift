@@ -194,15 +194,32 @@ struct RecipeCard: View {
 
 // MARK: - Fila compacta
 
-/// Versión de una línea, para "guardadas" y resultados de búsqueda.
+/// Versión de una línea, para "guardadas", resultados de búsqueda y el
+/// selector de recetas del calendario.
+///
+/// La fila trae sus propios márgenes laterales. Antes no los tenía y quien la
+/// usaba la metía pegada al borde de la tarjeta contenedora: la miniatura
+/// quedaba cortada por el radio de la esquina y el texto tocaba el hairline.
+/// Los márgenes son del componente, no del sitio donde se use.
 struct RecipeRow: View {
     let recipe: Recipe
+    /// Qué se ve a la derecha. En una lista que navega es un chevron; en el
+    /// selector del calendario, donde tocar AÑADE, un chevron mentía sobre lo
+    /// que va a pasar.
+    var accessory: String? = "chevron.right"
+    var accessoryTint: Color = Palette.inkFaint
 
     var body: some View {
         HStack(spacing: Space.sm) {
             RecipeHeroArt(recipe: recipe)
                 .frame(width: 56, height: 56)
                 .clipShape(RoundedRectangle.soft(Radius.sm))
+                .overlay {
+                    // Hairline sobre la miniatura: separa la foto del papel
+                    // cuando la imagen es clara y evita que se vea "pegada".
+                    RoundedRectangle.soft(Radius.sm)
+                        .strokeBorder(Palette.hairline, lineWidth: Stroke.hairline)
+                }
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(recipe.title)
@@ -226,11 +243,14 @@ struct RecipeRow: View {
 
             Spacer(minLength: 0)
 
-            Image(systemName: "chevron.right")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(Palette.inkFaint)
+            if let accessory {
+                Image(systemName: accessory)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(accessoryTint)
+            }
         }
-        .padding(.vertical, Space.xs)
+        .padding(.horizontal, Space.md)
+        .padding(.vertical, 10)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }

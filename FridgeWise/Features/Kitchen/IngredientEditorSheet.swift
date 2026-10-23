@@ -64,6 +64,7 @@ struct IngredientEditorSheet: View {
                 .padding(.bottom, 130)
             }
             .scrollIndicators(.hidden)
+            .lockedVerticalScroll()
             .dismissKeyboardOnDrag()
             .safeAreaInset(edge: .bottom) { footer }
         }

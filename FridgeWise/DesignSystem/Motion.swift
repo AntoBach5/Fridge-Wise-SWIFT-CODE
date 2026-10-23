@@ -63,6 +63,47 @@ extension View {
     }
 }
 
+// MARK: - Zoom entre pantallas
+
+/// El zoom de iOS 18: la pantalla nueva CRECE desde el control que la abrió en
+/// lugar de entrar desde abajo. Es la diferencia entre "se abrió un panel" y
+/// "toqué esto y se agrandó", y en una conversación con la IA importa: el
+/// usuario tiene que sentir que entró en la barra que acaba de tocar.
+///
+/// Doble guarda, igual que con el cristal: `#if compiler(>=6.0)` para que
+/// compile con Xcode anteriores (el símbolo no existiría) y `#available` para
+/// el dispositivo. Sin la API, la hoja entra con su transición normal.
+extension View {
+
+    /// Marca el control del que nace la transición.
+    @ViewBuilder
+    func zoomTransitionSource<ID: Hashable & Sendable>(id: ID, in namespace: Namespace.ID) -> some View {
+        #if compiler(>=6.0)
+        if #available(iOS 18.0, *) {
+            self.matchedTransitionSource(id: id, in: namespace)
+        } else {
+            self
+        }
+        #else
+        self
+        #endif
+    }
+
+    /// Se aplica al contenido presentado, apuntando al mismo id.
+    @ViewBuilder
+    func zoomTransition<ID: Hashable & Sendable>(from id: ID, in namespace: Namespace.ID) -> some View {
+        #if compiler(>=6.0)
+        if #available(iOS 18.0, *) {
+            self.navigationTransition(.zoom(sourceID: id, in: namespace))
+        } else {
+            self
+        }
+        #else
+        self
+        #endif
+    }
+}
+
 /// Lee "Reducir movimiento" para apagar loops ambientales (haz del escáner,
 /// gradientes fluidos) que no se pueden expresar como `.animation(_:value:)`.
 struct AmbientMotionKey: EnvironmentKey {

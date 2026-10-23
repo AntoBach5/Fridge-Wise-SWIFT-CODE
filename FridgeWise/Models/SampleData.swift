@@ -303,7 +303,7 @@ enum SampleData {
                durationHours: 24, isFeatured: true),
         Reward(kind: .extraScans,
                title: String(localized: "5 escaneos extra"),
-               detail: String(localized: "Se suman a tu límite diario y no expiran."),
+               detail: String(localized: "Se suman a tu límite semanal y no expiran."),
                cost: 180, icon: "viewfinder", accent: .mist, durationHours: nil),
         Reward(kind: .extraGenerations,
                title: String(localized: "10 recetas con IA"),

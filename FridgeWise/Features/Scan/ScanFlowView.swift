@@ -15,6 +15,12 @@
 //  y un listado de golpe se siente como magia barata; los pins apareciendo
 //  sobre su propia foto se siente como que algo entendió lo que hay adentro.
 //
+//  El visor escanea dos cosas: la nevera/alacena o el ticket de la compra. Se
+//  elige en el propio visor, como en la cámara nativa se elige entre foto y
+//  vídeo, y no en dos entradas distintas de la app: es la misma intención
+//  ("cargar lo que tengo") resuelta por dos motores distintos, y esa diferencia
+//  es un problema nuestro, no del usuario.
+//
 
 import SwiftUI
 
@@ -26,12 +32,15 @@ struct ScanFlowView: View {
 
     @State private var camera = CameraController()
     @State private var stage: Stage = .framing
+    @State private var subject: ScanSubject = .pantry
     @State private var capturedImage: UIImage?
     @State private var detected: [Ingredient] = []
     @State private var caption: String = ""
     @State private var progress: Double = 0
     @State private var scanTask: Task<Void, Never>?
     @State private var failure: ScanError?
+
+    @Namespace private var subjectNamespace
 
     enum Stage: Equatable {
         case permission, framing, analyzing, review
@@ -73,6 +82,7 @@ struct ScanFlowView: View {
         )) {
             ScanReviewSheet(
                 detected: $detected,
+                subject: subject,
                 onConfirm: { confirmed in
                     app.commitScan(ScanResult(detected: confirmed, overallConfidence: 1))
                     dismiss()
@@ -99,7 +109,16 @@ struct ScanFlowView: View {
             ),
             presenting: failure
         ) { _ in
-            Button(String(localized: "Entendido")) { stage = .framing }
+            // Volver al visor tiene que volver a encender la cámara: la
+            // captura la había parado, y sin esto el usuario se queda mirando
+            // su última foto congelada creyendo que la app se colgó.
+            Button(String(localized: "Volver a intentar")) {
+                detected = []
+                capturedImage = nil
+                progress = 0
+                stage = .framing
+                Task { await camera.start() }
+            }
         } message: { error in
             Text(error.recoverySuggestion ?? "")
         }
@@ -119,8 +138,7 @@ struct ScanFlowView: View {
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.white)
                         .frame(width: 36, height: 36)
-                        .background { Circle().fill(.black.opacity(0.35)) }
-                        .background { Circle().fill(.ultraThinMaterial) }
+                        .liquidGlass(in: Circle(), role: .overlay, interactive: true, shadow: false)
                 }
                 .accessibilityLabel(String(localized: "Cerrar"))
 
@@ -144,15 +162,14 @@ struct ScanFlowView: View {
                 .font(.system(size: 10, weight: .semibold))
             Text(left == .max
                  ? String(localized: "Sin límite")
-                 : String(localized: "\(left) hoy"))
+                 : String(localized: "\(left) esta semana"))
                 .font(Typeface.micro)
                 .fontWeight(.semibold)
         }
         .foregroundStyle(.white)
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background { Capsule().fill(.black.opacity(0.35)) }
-        .background { Capsule().fill(.ultraThinMaterial) }
+        .glassCapsule(role: .overlay, shadow: false)
     }
 
     // MARK: - Permiso
@@ -244,10 +261,15 @@ struct ScanFlowView: View {
             .ignoresSafeArea()
             .allowsHitTesting(false)
 
+            // El marco cambia de proporción con el modo. Que la forma del visor
+            // responda a lo que se va a fotografiar es la única instrucción que
+            // el usuario lee sin leer nada.
             ViewfinderCorners()
                 .stroke(.white.opacity(0.9), style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
-                .frame(width: 290, height: 380)
+                .frame(width: subject.viewfinderSize.width,
+                       height: subject.viewfinderSize.height)
                 .shadow(color: .black.opacity(0.3), radius: 8)
+                .motion(Motion.morph, value: subject)
 
             VStack {
                 Spacer()
@@ -257,12 +279,18 @@ struct ScanFlowView: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
 
-                Text(String(localized: "Abre la puerta del todo y encuadra los estantes"))
+                Text(subject.framingHint)
                     .font(Typeface.callout)
-                    .foregroundStyle(.white.opacity(0.85))
+                    .foregroundStyle(.white.opacity(0.9))
+                    .multilineTextAlignment(.center)
                     .padding(.horizontal, Space.md)
                     .padding(.vertical, 8)
-                    .background { Capsule().fill(.black.opacity(0.35)) }
+                    .glassCapsule(role: .overlay, shadow: false)
+                    .padding(.horizontal, Space.screen)
+                    .contentTransition(.opacity)
+                    .padding(.bottom, Space.md)
+
+                subjectSelector
                     .padding(.bottom, Space.lg)
 
                 shutterButton
@@ -270,6 +298,53 @@ struct ScanFlowView: View {
             }
             .motion(Motion.standard, value: camera.isTooDark)
         }
+    }
+
+    /// Selector de modo, con la física del de la cámara nativa: cristal líquido,
+    /// el indicador viaja, y el háptico confirma antes de que el ojo lo registre.
+    private var subjectSelector: some View {
+        GlassRail(spacing: Space.xs) {
+            HStack(spacing: 4) {
+                ForEach(ScanSubject.allCases) { option in
+                    subjectOption(option)
+                }
+            }
+            .padding(4)
+            .glassCapsule(role: .overlay, shadow: false)
+        }
+    }
+
+    private func subjectOption(_ option: ScanSubject) -> some View {
+        let isSelected = option == subject
+
+        return Button {
+            guard !isSelected else { return }
+            Haptics.select()
+            withAnimation(Motion.morph) { subject = option }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: option.icon)
+                    .font(.system(size: 11, weight: .semibold))
+                Text(option.title)
+                    .font(Typeface.action)
+            }
+            .foregroundStyle(isSelected ? .black : .white.opacity(0.75))
+            .padding(.horizontal, Space.md)
+            .padding(.vertical, 9)
+            .background {
+                if isSelected {
+                    Capsule(style: .continuous)
+                        .fill(.white)
+                        .matchedGeometryEffect(id: "subject", in: subjectNamespace)
+                }
+            }
+            .contentShape(Capsule(style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(option == .pantry
+            ? String(localized: "Escanear nevera o alacena")
+            : String(localized: "Escanear ticket de compra"))
+        .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
     }
 
     private var lowLightHint: some View {
@@ -283,7 +358,7 @@ struct ScanFlowView: View {
         .foregroundStyle(Palette.turmeric)
         .padding(.horizontal, 12)
         .padding(.vertical, 7)
-        .background { Capsule().fill(.black.opacity(0.5)) }
+        .glassCapsule(role: .overlay, shadow: false)
         .padding(.bottom, Space.sm)
     }
 
@@ -380,12 +455,7 @@ struct ScanFlowView: View {
             ProgressTrack(value: progress, accent: Palette.turmeric, height: 4)
         }
         .padding(Space.md)
-        .background {
-            RoundedRectangle.soft(Radius.lg).fill(.black.opacity(0.4))
-        }
-        .background {
-            RoundedRectangle.soft(Radius.lg).fill(.ultraThinMaterial)
-        }
+        .liquidGlass(in: RoundedRectangle.soft(Radius.lg), role: .overlay)
         .padding(.horizontal, Space.screen)
         .padding(.bottom, Space.xxl)
     }
@@ -414,19 +484,29 @@ struct ScanFlowView: View {
         await runScan(on: image ?? UIImage())
     }
 
+    /// El motor lo elige el modo del visor. La pantalla no sabe cuál corrió:
+    /// los dos hablan `ScanPhase`, y por eso añadir el ticket no tocó el teatro
+    /// del análisis ni la hoja de revisión.
+    private func phases(for image: UIImage) -> AsyncThrowingStream<ScanPhase, Error> {
+        switch subject {
+        case .pantry:  app.scanner.scan(image)
+        case .receipt: app.receiptScanner.scan(image)
+        }
+    }
+
     private func runScan(on image: UIImage) async {
         scanTask?.cancel()
         let task = Task {
             do {
-                for try await phase in app.scanner.scan(image) {
+                for try await phase in phases(for: image) {
                     guard !Task.isCancelled else { return }
 
                     switch phase {
                     case .preparing:
-                        caption = phase.caption
+                        caption = phase.caption(for: subject)
 
                     case .analyzing(let value):
-                        caption = phase.caption
+                        caption = phase.caption(for: subject)
                         withAnimation(Motion.meter) { progress = value * 0.95 }
 
                     case .detected(let ingredient):
@@ -446,8 +526,13 @@ struct ScanFlowView: View {
                     }
                 }
             } catch let error as ScanError {
+                // Un escaneo que no devolvió nada no se cobra. Gastar una de
+                // las tres de la semana porque el ticket salió borroso es la
+                // clase de detalle que decide si la cuota se percibe justa.
+                if case .cancelled = error {} else { app.refund(.scan) }
                 failure = error
             } catch {
+                app.refund(.scan)
                 failure = .noIngredientsFound
             }
         }
@@ -515,12 +600,7 @@ private struct DetectionPin: View {
         }
         .padding(.horizontal, 9)
         .padding(.vertical, 5.5)
-        .background { Capsule().fill(.black.opacity(0.55)) }
-        .background { Capsule().fill(.ultraThinMaterial) }
-        .overlay {
-            Capsule().strokeBorder(.white.opacity(0.18), lineWidth: Stroke.hairline)
-        }
-        .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 3)
+        .glassCapsule(role: .overlay)
         .accessibilityLabel(ingredient.needsReview
             ? String(localized: "\(ingredient.name), detección dudosa")
             : ingredient.name)

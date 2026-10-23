@@ -23,9 +23,27 @@ struct RecipeHeroArt: View {
     var body: some View {
         ZStack {
             if let imageName = recipe.imageName, UIImage(named: imageName) != nil {
-                Image(imageName)
-                    .resizable()
-                    .scaledToFill()
+                // `Color.clear` es lo que hace que esto funcione, y no es
+                // decorativo.
+                //
+                // Antes la imagen estaba directa en el ZStack: `scaledToFill`
+                // devuelve el tamaño NATURAL de la foto (mil y pico puntos), el
+                // ZStack se dimensionaba a eso, y el `.clipped()` recortaba
+                // contra ese tamaño gigante. El `.frame()` de quien nos usa solo
+                // centraba el resultado, así que la foto se derramaba por fuera
+                // de la tarjeta, pisaba los márgenes y se comía las esquinas
+                // redondeadas. Era exactamente el síntoma de "las fotos no
+                // respetan los bordes".
+                //
+                // Con un `Color.clear` dentro, el ZStack es flexible: adopta el
+                // tamaño que le propone el contenedor, la imagen va de overlay
+                // y el recorte cae donde tiene que caer.
+                Color.clear
+                    .overlay {
+                        Image(imageName)
+                            .resizable()
+                            .scaledToFill()
+                    }
             } else {
                 proceduralArt
             }

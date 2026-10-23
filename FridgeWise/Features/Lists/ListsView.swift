@@ -151,11 +151,13 @@ struct ListsView: View {
         }
         .padding(.horizontal, Space.md)
         .padding(.vertical, 12)
-        .background { Capsule().fill(Palette.surface) }
+        .glassCapsule(role: .control, interactive: true, shadow: false)
         .overlay {
+            // El foco se marca con el acento de la lista activa, encima del
+            // cristal: el cristal da la superficie, el borde da el estado.
             Capsule().strokeBorder(
-                isComposing ? kind.accent.color.opacity(0.4) : Palette.hairline,
-                lineWidth: Stroke.hairline
+                isComposing ? kind.accent.color.opacity(0.55) : .clear,
+                lineWidth: Stroke.regular
             )
         }
         .motion(Motion.standard, value: isComposing)
@@ -421,6 +423,9 @@ struct SwipeableRow<Content: View>: View {
         }
         .clipped()
         .opacity(isCommitting ? 0 : 1)
+        // El swipe es invisible para VoiceOver: sin esta acción, borrar una fila
+        // era imposible con el lector encendido. Aparece en el rotor de acciones.
+        .accessibilityAction(named: Text(String(localized: "Borrar"))) { commit() }
     }
 
     private func commit() {

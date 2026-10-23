@@ -213,9 +213,7 @@ struct RecipeDetailView: View {
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(Palette.ink)
                     .frame(width: 38, height: 38)
-                    .background { Circle().fill(Palette.surface.opacity(0.9)) }
-                    .background { Circle().fill(.ultraThinMaterial) }
-                    .overlay { Circle().strokeBorder(Palette.hairline, lineWidth: Stroke.hairline) }
+                    .liquidGlass(in: Circle(), role: .control, interactive: true, shadow: false)
             }
             .simultaneousGesture(TapGesture().onEnded {
                 app.ledger.award(.recipeShared, note: recipe.title)
@@ -243,9 +241,7 @@ struct RecipeDetailView: View {
                 .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(tint)
                 .frame(width: 38, height: 38)
-                .background { Circle().fill(Palette.surface.opacity(0.9)) }
-                .background { Circle().fill(.ultraThinMaterial) }
-                .overlay { Circle().strokeBorder(Palette.hairline, lineWidth: Stroke.hairline) }
+                .liquidGlass(in: Circle(), role: .control, interactive: true, shadow: false)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)

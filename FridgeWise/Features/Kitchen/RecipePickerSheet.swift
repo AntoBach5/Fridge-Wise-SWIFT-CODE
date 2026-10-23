@@ -53,6 +53,7 @@ struct RecipePickerSheet: View {
                         .padding(.bottom, Space.xxl)
                     }
                     .scrollIndicators(.hidden)
+                    .lockedVerticalScroll()
                     .dismissKeyboardOnDrag()
                 }
             }
@@ -117,10 +118,10 @@ struct RecipePickerSheet: View {
         }
         .padding(.horizontal, Space.md)
         .padding(.vertical, 12)
-        .background { Capsule().fill(Palette.surface) }
+        .glassCapsule(role: .control, interactive: true, shadow: false)
         .overlay {
-            Capsule().strokeBorder(isSearching ? Palette.basil.opacity(0.4) : Palette.hairline,
-                                   lineWidth: Stroke.hairline)
+            Capsule().strokeBorder(isSearching ? Palette.basil.opacity(0.55) : .clear,
+                                   lineWidth: Stroke.regular)
         }
         .motion(Motion.standard, value: isSearching)
     }
@@ -186,14 +187,9 @@ struct RecipePickerSheet: View {
                         onPick(recipe)
                         dismiss()
                     } label: {
-                        HStack(spacing: 0) {
-                            RecipeRow(recipe: recipe)
-                            Image(systemName: "plus.circle")
-                                .font(.system(size: 15, weight: .medium))
-                                .foregroundStyle(Palette.basil)
-                                .padding(.trailing, Space.md)
-                        }
-                        .contentShape(Rectangle())
+                        RecipeRow(recipe: recipe,
+                                  accessory: "plus.circle",
+                                  accessoryTint: Palette.basil)
                     }
                     .buttonStyle(.pressableCard)
 

@@ -26,6 +26,10 @@ final class AppEnvironment {
     let persistence = PersistenceStore()
 
     let scanner: FridgeScanning
+    /// Lector de tickets. Es el otro camino para cargar la despensa con la
+    /// cámara, y a diferencia del escáner de nevera ya corre de verdad: OCR
+    /// local con Vision, sin salir del dispositivo.
+    let receiptScanner: ReceiptScanning
     let generator: RecipeGenerating
 
     // MARK: - Estado de dominio
@@ -73,9 +77,21 @@ final class AppEnvironment {
 
     // MARK: - Metering
 
+    /// Contador de cuota. La ventana es la SEMANA natural, y se guarda el
+    /// inicio de esa semana en vez de una fecha de caducidad: así el contador
+    /// es correcto aunque la app pase diez días cerrada, cambie la zona horaria
+    /// o el usuario mueva el reloj del sistema hacia adelante.
     private struct UsageMeter: Codable, Sendable {
-        var day: Date = Calendar.current.startOfDay(for: .now)
+        var weekStart: Date = UsageMeter.startOfWeek(for: .now)
         var counts: [String: Int] = [:]
+
+        /// Lunes de la semana en curso (en España la semana empieza el lunes;
+        /// lo decide el calendario del usuario, no una constante nuestra).
+        static func startOfWeek(for date: Date) -> Date {
+            let calendar = Calendar.current
+            return calendar.dateInterval(of: .weekOfYear, for: date)?.start
+                ?? calendar.startOfDay(for: date)
+        }
     }
 
     private var meter = UsageMeter()
@@ -84,10 +100,12 @@ final class AppEnvironment {
 
     init(
         scanner: FridgeScanning = MockFridgeScanner(),
+        receiptScanner: ReceiptScanning = VisionReceiptScanner(),
         generator: RecipeGenerating = MockRecipeGenerator(),
         preloadSampleData: Bool = true
     ) {
         self.scanner = scanner
+        self.receiptScanner = receiptScanner
         self.generator = generator
 
         if preloadSampleData {
@@ -193,13 +211,22 @@ final class AppEnvironment {
         (profile.isPremium || store.isPremium) ? .premium : .free
     }
 
+    /// Arranca una ventana nueva si cambió la semana. El contador se pone a
+    /// cero, no se suma: la cuota no es acumulable y lo que sobró se pierde.
     private func rolloverMeterIfNeeded() {
-        let today = Calendar.current.startOfDay(for: .now)
-        guard !Calendar.current.isDate(meter.day, inSameDayAs: today) else { return }
-        meter.day = today
-        for resource in MeteredResource.allCases where resource.isDaily {
+        let currentWeek = UsageMeter.startOfWeek(for: .now)
+        guard currentWeek != meter.weekStart else { return }
+        meter.weekStart = currentWeek
+        for resource in MeteredResource.allCases where resource.resetsWeekly {
             meter.counts[resource.rawValue] = 0
         }
+    }
+
+    /// Cuándo vuelve a llenarse la cuota. Lo usa el copy del límite: decirle al
+    /// usuario "vuelve el lunes" solo sirve si el lunes es el día correcto.
+    var quotaResetsAt: Date {
+        Calendar.current.date(byAdding: .weekOfYear, value: 1, to: meter.weekStart)
+            ?? meter.weekStart
     }
 
     func used(_ resource: MeteredResource) -> Int {
@@ -246,6 +273,15 @@ final class AppEnvironment {
         Haptics.reject()
         limitPrompt = LimitPrompt(resource: resource, used: used(resource), limit: limit)
         return false
+    }
+
+    /// Devuelve una unidad consumida. Se llama cuando la operación que la
+    /// gastó terminó sin darle nada al usuario (un ticket ilegible, un escaneo
+    /// sin resultados): cobrar por eso es lo que hace que una cuota se sienta
+    /// una trampa.
+    func refund(_ resource: MeteredResource) {
+        guard let current = meter.counts[resource.rawValue], current > 0 else { return }
+        meter.counts[resource.rawValue] = current - 1
     }
 
     // MARK: - Despensa
@@ -582,6 +618,53 @@ final class AppEnvironment {
         }
     }
 
+    /// Mueve un plan de día y/o cambia su recordatorio.
+    ///
+    /// Un plan es un compromiso con una fecha, y los planes cambian: el único
+    /// camino que había era borrarlo y volver a agendarlo desde el buscador de
+    /// recetas, cuatro pasos para mover algo un día. Aquí se reprograma en uno.
+    ///
+    /// La notificación se cancela y se vuelve a crear SIEMPRE, también cuando
+    /// solo cambia la hora: el identificador es el del plan, y pedirle al
+    /// sistema que registre dos veces el mismo id deja la vieja en pie.
+    func reschedulePlan(_ plan: CookPlan, to day: Date, remindAt time: Date?) {
+        guard let index = plans.firstIndex(where: { $0.id == plan.id }) else { return }
+
+        let calendar = Calendar.current
+        let target = calendar.startOfDay(for: day)
+
+        // La hora elegida se reancla al día destino. Sin esto, mover un plan de
+        // mañana al jueves dejaba el aviso programado para mañana.
+        let reminder: Date? = time.flatMap { chosen in
+            let parts = calendar.dateComponents([.hour, .minute], from: chosen)
+            return calendar.date(bySettingHour: parts.hour ?? 11,
+                                 minute: parts.minute ?? 0,
+                                 second: 0,
+                                 of: target)
+        }
+
+        var updated = plans[index]
+        updated.day = target
+        updated.remindsAt = reminder
+
+        CookPlanScheduler.cancel(plan)
+        withAnimation(Motion.standard) { plans[index] = updated }
+
+        Haptics.commit()
+        showToast(ToastPayload(
+            message: String(localized: "Plan actualizado"),
+            detail: reminder == nil
+                ? target.formatted(.dateTime.weekday(.wide).day().month())
+                : String(localized: "\(target.formatted(.dateTime.weekday(.wide).day().month())) · \(reminder!.formatted(.dateTime.hour().minute()))"),
+            systemImage: "calendar.badge.clock", accent: .basil
+        ))
+
+        Task {
+            await CookPlanScheduler.schedule(updated)
+            await save()
+        }
+    }
+
     func removePlan(_ plan: CookPlan) {
         CookPlanScheduler.cancel(plan)
         withAnimation(Motion.standard) { plans.removeAll { $0.id == plan.id } }
@@ -792,6 +875,15 @@ final class AppEnvironment {
         var pantry: [Ingredient]
         var listItems: [ListItem]
         var savedRecipeIDs: [UUID]
+
+        /// El contador de cuota viaja con el perfil. Antes vivía solo en
+        /// memoria, así que cerrar y abrir la app regalaba la semana entera:
+        /// con una ventana de siete días eso convertía el límite en decorado.
+        ///
+        /// Es opcional a propósito. Añadir una clave obligatoria a un modelo ya
+        /// guardado hace fallar el decode completo, y aquí ese fallo se habría
+        /// comido la despensa y las listas del usuario en la actualización.
+        var meter: UsageMeter?
     }
 
     /// Las recetas van a su propio archivo: son el bloque más grande y el que
@@ -804,7 +896,8 @@ final class AppEnvironment {
     func save() async {
         let snapshot = Snapshot(profile: profile, pantry: pantry,
                                 listItems: listItems,
-                                savedRecipeIDs: Array(savedRecipeIDs))
+                                savedRecipeIDs: Array(savedRecipeIDs),
+                                meter: meter)
         try? await persistence.save(snapshot, to: .profile)
         try? await persistence.save(
             RecipeArchive(library: library, recentlyViewedIDs: recentlyViewedIDs),
@@ -821,6 +914,9 @@ final class AppEnvironment {
             pantry = snapshot.pantry
             listItems = snapshot.listItems
             savedRecipeIDs = Set(snapshot.savedRecipeIDs)
+            if let saved = snapshot.meter { meter = saved }
+            // Lo guardado puede ser de la semana pasada.
+            rolloverMeterIfNeeded()
         }
         if let archive = await persistence.load(RecipeArchive.self, from: .recipes) {
             library = archive.library

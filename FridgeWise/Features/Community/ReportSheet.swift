@@ -41,6 +41,7 @@ struct ReportSheet: View {
                 .padding(.bottom, Space.md)
             }
             .scrollIndicators(.hidden)
+            .lockedVerticalScroll()
             .dismissKeyboardOnDrag()
 
             submitButton

@@ -43,29 +43,84 @@ extension View {
 
     /// Riel horizontal que no hace rubber-band cuando el contenido es más corto
     /// que la pantalla. Sin esto, un carrusel de 2 tarjetas "tiembla" al tocarlo.
+    ///
+    /// Además queda bloqueado por eje: un riel horizontal metido dentro de un
+    /// scroll vertical se queda quieto si el arrastre empezó siendo vertical.
+    /// Esto es lo que evitaba que la pantalla se fuera de lado al scrollear en
+    /// diagonal, que es como se scrollea de verdad con el pulgar.
     func tightHorizontalRail() -> some View {
-        #if canImport(SwiftUIIntrospect)
-        self.introspect(.scrollView, on: .iOS(.v17, .v18)) { scrollView in
-            scrollView.alwaysBounceHorizontal = false
-            scrollView.showsHorizontalScrollIndicator = false
-            // Los botones dentro del riel responden al primer toque en lugar de
-            // esperar a que el scroll decida si es un drag.
-            scrollView.delaysContentTouches = false
-        }
-        #else
         self
-        #endif
+            .scrollBounceBehavior(.basedOnSize, axes: [.horizontal, .vertical])
+            .introspectScrollView { scrollView in
+                scrollView.alwaysBounceHorizontal = false
+                scrollView.alwaysBounceVertical = false
+                scrollView.showsHorizontalScrollIndicator = false
+                scrollView.isDirectionalLockEnabled = true
+                // Los botones dentro del riel responden al primer toque en lugar de
+                // esperar a que el scroll decida si es un drag.
+                scrollView.delaysContentTouches = false
+            }
     }
 
     /// Scroll vertical con la desaceleración lenta que usa Apple en apps editoriales.
     /// Hace que las listas largas se sientan más "pesadas" y menos resbaladizas.
+    /// Incluye el bloqueo de eje de `lockedVerticalScroll()`.
     func editorialScrollFeel() -> some View {
+        self
+            .lockedVerticalScroll()
+            .introspectScrollView { scrollView in
+                scrollView.decelerationRate = .normal
+                scrollView.delaysContentTouches = false
+            }
+    }
+
+    /// Scroll que SOLO se mueve en vertical.
+    ///
+    /// El síntoma era que la pantalla se desplazaba de lado al scrollear. Son
+    /// tres causas que se suman, y se atacan las tres:
+    ///
+    /// 1. `isDirectionalLockEnabled` — en cuanto UIKit decide que el arrastre es
+    ///    vertical, ignora por completo la componente horizontal durante todo el
+    ///    gesto. Es el arreglo de fondo: sin él, cualquier diagonal arrastra.
+    /// 2. `alwaysBounceHorizontal = false` + `scrollBounceBehavior` — matan el
+    ///    rebote lateral en los bordes, que es la parte del movimiento que el
+    ///    usuario percibe como "la pantalla se va".
+    /// 3. `contentOffset.x` fijado a 0 — red de seguridad. Si algún hijo mide
+    ///    más que el viewport (un título largo, una tarjeta con sombra), el
+    ///    scroll view se vuelve desplazable en horizontal aunque sus ejes sean
+    ///    verticales, y entonces nada de lo anterior alcanza.
+    ///
+    /// La condición 3 no se puede expresar en SwiftUI puro, y por eso este
+    /// modificador sigue necesitando Introspect.
+    func lockedVerticalScroll() -> some View {
+        self
+            .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
+            .introspectScrollView { scrollView in
+                scrollView.isDirectionalLockEnabled = true
+                scrollView.alwaysBounceHorizontal = false
+                scrollView.showsHorizontalScrollIndicator = false
+                scrollView.showsVerticalScrollIndicator = false
+                if scrollView.contentSize.width <= scrollView.bounds.width,
+                   scrollView.contentOffset.x != 0 {
+                    scrollView.contentOffset.x = 0
+                }
+            }
+    }
+
+    /// Un solo punto de entrada a Introspect para los scroll views.
+    ///
+    /// Centralizarlo tiene un motivo concreto: la lista de plataformas hay que
+    /// ampliarla cada vez que sale una versión de iOS, y repartida por seis
+    /// modificadores se olvida uno. Cuando no hay versión declarada el bloque
+    /// simplemente no corre, la app no se rompe, pero el ajuste se pierde —
+    /// y un bug de scroll que vuelve "solo en los iPhone nuevos" es muy caro
+    /// de encontrar.
+    @ViewBuilder
+    private func introspectScrollView(
+        _ customize: @escaping (UIScrollView) -> Void
+    ) -> some View {
         #if canImport(SwiftUIIntrospect)
-        self.introspect(.scrollView, on: .iOS(.v17, .v18)) { scrollView in
-            scrollView.decelerationRate = .normal
-            scrollView.showsVerticalScrollIndicator = false
-            scrollView.delaysContentTouches = false
-        }
+        self.introspect(.scrollView, on: .iOS(.v17, .v18), customize: customize)
         #else
         self
         #endif

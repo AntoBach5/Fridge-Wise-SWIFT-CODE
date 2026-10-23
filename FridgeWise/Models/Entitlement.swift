@@ -33,23 +33,28 @@ enum Plan: String, Codable, Sendable {
 /// ajustarlas sin tocar la UI, y para que la pantalla de límites siempre
 /// muestre exactamente el mismo número que aplica el motor.
 struct PlanLimits: Sendable, Equatable {
-    var scansPerDay: Int
-    var aiGenerationsPerDay: Int
+    /// La cuota es SEMANAL, no diaria, y no se acumula: lo que no se usa se
+    /// pierde el lunes. Una cuota diaria castiga al que cocina los domingos y
+    /// premia al que abre la app todos los días sin necesitarla; la semanal se
+    /// parece a cómo la gente hace la compra y permite tres escaneos seguidos
+    /// un sábado, que es cuando de verdad se usan.
+    var scansPerWeek: Int
+    var aiGenerationsPerWeek: Int
     var savedRecipes: Int
     var listItems: Int
     var showsAds: Bool
 
     static let free = PlanLimits(
-        scansPerDay: 3,
-        aiGenerationsPerDay: 5,
+        scansPerWeek: 3,
+        aiGenerationsPerWeek: 5,
         savedRecipes: 30,
         listItems: 50,
         showsAds: true
     )
 
     static let premium = PlanLimits(
-        scansPerDay: .max,
-        aiGenerationsPerDay: .max,
+        scansPerWeek: .max,
+        aiGenerationsPerWeek: .max,
         savedRecipes: .max,
         listItems: .max,
         showsAds: false
@@ -83,8 +88,9 @@ enum MeteredResource: String, CaseIterable, Sendable {
         }
     }
 
-    /// Se reinicia todos los días a medianoche (vs. tope acumulado).
-    var isDaily: Bool {
+    /// Se reinicia al empezar la semana (vs. tope acumulado).
+    /// El sobrante NO viaja a la semana siguiente.
+    var resetsWeekly: Bool {
         switch self {
         case .scan, .aiGeneration: true
         case .savedRecipe, .listItem: false
@@ -93,8 +99,8 @@ enum MeteredResource: String, CaseIterable, Sendable {
 
     func limit(under limits: PlanLimits) -> Int {
         switch self {
-        case .scan:         limits.scansPerDay
-        case .aiGeneration: limits.aiGenerationsPerDay
+        case .scan:         limits.scansPerWeek
+        case .aiGeneration: limits.aiGenerationsPerWeek
         case .savedRecipe:  limits.savedRecipes
         case .listItem:     limits.listItems
         }

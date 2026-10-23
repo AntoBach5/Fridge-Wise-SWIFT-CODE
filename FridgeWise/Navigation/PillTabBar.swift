@@ -5,7 +5,11 @@
 //  La pill oscura flotante de la referencia, extendida a cinco destinos.
 //
 //  Decisiones:
-//  · El indicador activo es un chip claro que VIAJA con matchedGeometryEffect.
+//  · La pill y el botón de escanear son dos cristales líquidos dentro de un
+//    mismo `GlassRail`. Eso es lo que hace que, al moverse —al atenuarse con el
+//    scroll, al retirarse en una pantalla empujada— se estiren y se despeguen
+//    como un solo cuerpo en vez de deslizarse como dos rectángulos.
+//  · El indicador activo es otro cristal que VIAJA entre tabs.
 //  · "Escanear" no es un tab más: es un botón de acento en el centro, con su propio
 //    peso visual, porque es la acción que define el producto.
 //  · La pill se contrae a ~72% de opacidad y baja 4pt cuando el usuario scrollea
@@ -22,12 +26,15 @@ struct PillTabBar: View {
     var onScanTapped: () -> Void
 
     @Namespace private var namespace
+    @Namespace private var glassNamespace
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        HStack(spacing: Space.sm) {
-            pill
-            scanButton
+        GlassRail(spacing: Space.lg) {
+            HStack(spacing: Space.sm) {
+                pill
+                scanButton
+            }
         }
         .padding(.horizontal, Space.screen)
         .opacity(isDimmed ? 0.72 : 1)
@@ -44,21 +51,8 @@ struct PillTabBar: View {
             }
         }
         .padding(5)
-        .background {
-            Capsule(style: .continuous)
-                .fill(Palette.inkSolid)
-                .shadow(color: Color.black.opacity(0.22), radius: 24, x: 0, y: 12)
-        }
-        .overlay {
-            // Highlight superior: hace que la pill se lea como un objeto sólido
-            // con luz encima, no como un rectángulo negro.
-            Capsule(style: .continuous)
-                .strokeBorder(
-                    LinearGradient(colors: [.white.opacity(0.14), .white.opacity(0.02)],
-                                   startPoint: .top, endPoint: .bottom),
-                    lineWidth: Stroke.hairline
-                )
-        }
+        .liquidGlass(in: Capsule(style: .continuous), role: .chrome)
+        .glassMorphID("tabPill", in: glassNamespace)
     }
 
     private func tabButton(_ tab: AppTab) -> some View {
@@ -72,7 +66,7 @@ struct PillTabBar: View {
             ZStack {
                 if isSelected {
                     Capsule(style: .continuous)
-                        .fill(Palette.onInk.opacity(0.14))
+                        .fill(Palette.onInk.opacity(LiquidGlass.isSupported ? 0.20 : 0.14))
                         .matchedGeometryEffect(id: "tabIndicator", in: namespace)
                 }
 
@@ -98,10 +92,6 @@ struct PillTabBar: View {
             onScanTapped()
         } label: {
             ZStack {
-                Circle()
-                    .fill(Palette.tomato)
-                    .shadow(color: Palette.tomato.opacity(0.38), radius: 18, x: 0, y: 9)
-
                 // Anillo de respiración: llama la atención sin animación agresiva.
                 Circle()
                     .strokeBorder(Palette.tomato.opacity(0.32), lineWidth: 1)
@@ -113,6 +103,9 @@ struct PillTabBar: View {
                     .foregroundStyle(Palette.onInk)
             }
             .frame(width: 54, height: 54)
+            .liquidGlass(in: Circle(), tint: Palette.tomato)
+            .glassMorphID("scanButton", in: glassNamespace)
+            .shadow(color: Palette.tomato.opacity(0.34), radius: 18, x: 0, y: 9)
         }
         .buttonStyle(.pressableCard)
         .accessibilityLabel(String(localized: "Escanear nevera"))

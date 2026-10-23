@@ -150,6 +150,7 @@ struct CookModeView: View {
             .screenPadding()
         }
         .scrollIndicators(.hidden)
+        .lockedVerticalScroll()
         .id(index)
         .transition(.asymmetric(
             insertion: .move(edge: .trailing).combined(with: .opacity),
@@ -158,8 +159,16 @@ struct CookModeView: View {
         .gesture(
             DragGesture(minimumDistance: 40)
                 .onEnded { value in
-                    if value.translation.width < -60, !isLastStep { advance() }
-                    if value.translation.width > 60, index > 0 { retreat() }
+                    // El paso solo cambia si el gesto fue claramente horizontal.
+                    // Sin esta condición, bajar por una instrucción larga con
+                    // algo de diagonal pasaba de paso a mitad de la lectura —
+                    // y en modo cocina el usuario tiene las manos sucias y no
+                    // está mirando: perder el paso es perder la receta.
+                    let horizontal = value.translation.width
+                    guard abs(horizontal) > abs(value.translation.height) * 1.5 else { return }
+
+                    if horizontal < -60, !isLastStep { advance() }
+                    if horizontal > 60, index > 0 { retreat() }
                 }
         )
     }

@@ -71,6 +71,7 @@ struct GenerationSheet: View {
             .padding(.bottom, 120)
         }
         .scrollIndicators(.hidden)
+        .lockedVerticalScroll()
         .dismissKeyboardOnDrag()
         .safeAreaInset(edge: .bottom) { setupFooter }
     }
@@ -288,7 +289,7 @@ struct GenerationSheet: View {
                     .foregroundStyle(Palette.tomato)
                     .multilineTextAlignment(.center)
             } else if !app.profile.isPremium {
-                Text(String(localized: "Te quedan \(app.remaining(.aiGeneration)) generaciones hoy"))
+                Text(String(localized: "Te quedan \(app.remaining(.aiGeneration)) generaciones esta semana"))
                     .font(Typeface.micro)
                     .foregroundStyle(Palette.inkFaint)
             }
@@ -401,6 +402,7 @@ struct GenerationSheet: View {
             .padding(.bottom, Space.xxl)
         }
         .scrollIndicators(.hidden)
+        .lockedVerticalScroll()
     }
 
     /// Guideline 1.4.1 + sentido común: lo que estima un modelo se presenta

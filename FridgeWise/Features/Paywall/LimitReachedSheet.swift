@@ -5,9 +5,13 @@
 //  Qué pasa cuando el plan gratuito se queda sin cupo.
 //
 //  Postura: esto NO es un muro. Se ofrecen tres salidas y dos de ellas son
-//  gratis (esperar a mañana, canjear puntos ganados). Un límite que solo se
-//  destraba pagando convierte la app en un rehén, y eso se paga con reseñas
-//  de una estrella mucho antes que con suscripciones.
+//  gratis (esperar al reinicio semanal, canjear puntos ganados). Un límite que
+//  solo se destraba pagando convierte la app en un rehén, y eso se paga con
+//  reseñas de una estrella mucho antes que con suscripciones.
+//
+//  La cuota es semanal y no acumulable, así que el copy dice exactamente CUÁNDO
+//  vuelve: "el lunes" sale de la fecha real del contador, no de una constante.
+//  Un mensaje que promete el día equivocado es peor que no dar fecha.
 //
 
 import SwiftUI
@@ -96,8 +100,8 @@ struct LimitReachedSheet: View {
 
     private var emphasis: String {
         switch prompt.resource {
-        case .scan:         String(localized: "\(prompt.limit) escaneos de hoy")
-        case .aiGeneration: String(localized: "\(prompt.limit) recetas de hoy")
+        case .scan:         String(localized: "\(prompt.limit) escaneos de la semana")
+        case .aiGeneration: String(localized: "\(prompt.limit) recetas de la semana")
         case .savedRecipe:  String(localized: "lleno")
         case .listItem:     String(localized: "llena")
         }
@@ -106,7 +110,7 @@ struct LimitReachedSheet: View {
     private var message: String {
         switch prompt.resource {
         case .scan, .aiGeneration:
-            String(localized: "El contador se reinicia a la medianoche. Mientras tanto puedes canjear puntos o pasarte a Premium.")
+            String(localized: "El contador vuelve a \(prompt.limit) el \(resetWeekday). No se acumula: lo que no uses esta semana no se guarda. Mientras tanto puedes canjear puntos o pasarte a Premium.")
         case .savedRecipe:
             String(localized: "El plan gratuito guarda hasta \(prompt.limit) recetas. Borra alguna, o pásate a Premium para no volver a elegir.")
         case .listItem:
@@ -114,9 +118,14 @@ struct LimitReachedSheet: View {
         }
     }
 
+    /// Día en que se reinicia la cuota, en palabras. Sale del contador real.
+    private var resetWeekday: String {
+        app.quotaResetsAt.formatted(.dateTime.weekday(.wide))
+    }
+
     private var resetLabel: String {
-        prompt.resource.isDaily
-            ? String(localized: "Espero a mañana")
+        prompt.resource.resetsWeekly
+            ? String(localized: "Espero al \(resetWeekday)")
             : String(localized: "Ahora no")
     }
 

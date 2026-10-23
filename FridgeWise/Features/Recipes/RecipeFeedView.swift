@@ -18,6 +18,9 @@ struct RecipeFeedView: View {
     @State private var activeTags: Set<RecipeTag> = []
     @State private var isGenerating = false
     @State private var isComposing = false
+    @State private var isAskingAssistant = false
+
+    @Namespace private var assistantTransition
 
     enum Scope: String, CaseIterable, Hashable {
         case forYou, community, saved
@@ -36,6 +39,14 @@ struct RecipeFeedView: View {
             VStack(alignment: .leading, spacing: Space.lg) {
                 header
                 segments
+
+                // El asistente solo vive en "Para ti". En Comunidad y Guardadas
+                // la pregunta no tendría sentido: ahí el usuario ya sabe qué
+                // está buscando y lo que quiere es filtrar, no conversar.
+                if scope == .forYou {
+                    assistantBar
+                }
+
                 generateCard
                 composeCard
 
@@ -70,6 +81,13 @@ struct RecipeFeedView: View {
                 .presentationCornerRadius(Radius.sheet)
                 .presentationBackground(Palette.canvas)
         }
+        .sheet(isPresented: $isAskingAssistant) {
+            RecipeAssistantView()
+                .presentationDetents([.large])
+                .presentationCornerRadius(Radius.sheet)
+                .presentationBackground(Palette.canvas)
+                .zoomTransition(from: "assistant", in: assistantTransition)
+        }
         .task { await app.ads.loadNativeAd() }
         .onChange(of: scope) { _, _ in
             Task { await app.ads.loadNativeAd() }
@@ -103,6 +121,16 @@ struct RecipeFeedView: View {
             },
             selection: $scope
         )
+        .screenPadding()
+    }
+
+    // MARK: - Asistente
+
+    private var assistantBar: some View {
+        RecipeAssistantBar {
+            isAskingAssistant = true
+        }
+        .zoomTransitionSource(id: "assistant", in: assistantTransition)
         .screenPadding()
     }
 
@@ -160,7 +188,7 @@ struct RecipeFeedView: View {
         if app.profile.isPremium { return String(localized: "\(app.pantry.count) ingredientes en tu despensa") }
         return remaining == .max
             ? String(localized: "\(app.pantry.count) ingredientes en tu despensa")
-            : String(localized: "Te quedan \(remaining) generaciones hoy")
+            : String(localized: "Te quedan \(remaining) generaciones esta semana")
     }
 
     /// Más discreta que la de generar a propósito: escribir una receta entera es

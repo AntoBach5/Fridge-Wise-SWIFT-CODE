@@ -11,8 +11,14 @@ import SwiftUI
 
 // MARK: - Segmentado con indicador que se transforma
 
-/// Selector de dos o tres opciones. El indicador viaja con `matchedGeometryEffect`,
-/// así que al cambiar de segmento se desliza y se estira en lugar de aparecer.
+/// Selector de dos o tres opciones, sobre cristal líquido.
+///
+/// El riel es una cápsula de cristal y el indicador activo es otro cristal que
+/// VIAJA: dentro del `GlassRail` el sistema resuelve los dos como un solo cuerpo,
+/// así que al cambiar de segmento el indicador se estira, se despega del borde
+/// anterior y se vuelve a cuajar en el nuevo. En iOS 17–18, donde la API no
+/// existe, `matchedGeometryEffect` sigue dando el desplazamiento y el cristal
+/// degrada a material: el gesto se siente igual, solo pierde la refracción.
 struct MorphingSegments<Item: Hashable>: View {
     let items: [Item]
     let title: (Item) -> String
@@ -20,56 +26,61 @@ struct MorphingSegments<Item: Hashable>: View {
     @Binding var selection: Item
 
     @Namespace private var namespace
+    @Namespace private var glassNamespace
 
     var body: some View {
-        HStack(spacing: 4) {
-            ForEach(items, id: \.self) { item in
-                let isSelected = item == selection
-
-                Button {
-                    guard !isSelected else { return }
-                    Haptics.select()
-                    withAnimation(Motion.morph) { selection = item }
-                } label: {
-                    HStack(spacing: 6) {
-                        Text(title(item))
-                            .font(Typeface.action)
-                            .foregroundStyle(isSelected ? Palette.onInk : Palette.inkSoft)
-
-                        if let count = badge(item), count > 0 {
-                            Text("\(count)")
-                                .font(.system(size: 10.5, weight: .bold))
-                                .monospacedDigit()
-                                .foregroundStyle(isSelected ? Palette.inkSolid : Palette.onInk)
-                                .padding(.horizontal, 5)
-                                .padding(.vertical, 1.5)
-                                .background {
-                                    Capsule().fill(isSelected ? Palette.onInk : Palette.inkSoft)
-                                }
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 10)
-                    .background {
-                        if isSelected {
-                            Capsule(style: .continuous)
-                                .fill(Palette.inkSolid)
-                                .matchedGeometryEffect(id: "segment", in: namespace)
-                        }
-                    }
-                    .contentShape(Capsule(style: .continuous))
+        GlassRail(spacing: Space.xs) {
+            HStack(spacing: 4) {
+                ForEach(items, id: \.self) { item in
+                    segment(item)
                 }
-                .buttonStyle(.plain)
-                .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
             }
+            .padding(4)
+            .glassCapsule(role: .control, shadow: false)
         }
-        .padding(4)
-        .background {
-            Capsule(style: .continuous).fill(Palette.canvasSunken)
+    }
+
+    private func segment(_ item: Item) -> some View {
+        let isSelected = item == selection
+
+        return Button {
+            guard !isSelected else { return }
+            Haptics.select()
+            withAnimation(Motion.morph) { selection = item }
+        } label: {
+            HStack(spacing: 6) {
+                Text(title(item))
+                    .font(Typeface.action)
+                    .foregroundStyle(isSelected ? Palette.onInk : Palette.inkSoft)
+
+                if let count = badge(item), count > 0 {
+                    Text("\(count)")
+                        .font(.system(size: 10.5, weight: .bold))
+                        .monospacedDigit()
+                        .foregroundStyle(isSelected ? Palette.inkSolid : Palette.onInk)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 1.5)
+                        .background {
+                            Capsule().fill(isSelected ? Palette.onInk : Palette.inkSoft)
+                        }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background {
+                if isSelected {
+                    Color.clear
+                        .liquidGlass(in: Capsule(style: .continuous),
+                                     tint: Palette.inkSolid,
+                                     interactive: true)
+                        .glassMorphID("segment", in: glassNamespace)
+                        .matchedGeometryEffect(id: "segment", in: namespace)
+                }
+            }
+            .contentShape(Capsule(style: .continuous))
         }
-        .overlay {
-            Capsule(style: .continuous).strokeBorder(Palette.hairline, lineWidth: Stroke.hairline)
-        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
     }
 }
 
@@ -82,6 +93,7 @@ struct WeekStrip: View {
     @Binding var selection: Date
 
     @Namespace private var namespace
+    @Namespace private var glassNamespace
     private let calendar = Calendar.current
 
     struct DayMarker: Identifiable, Hashable {
@@ -93,52 +105,61 @@ struct WeekStrip: View {
     }
 
     var body: some View {
-        HStack(spacing: 2) {
-            ForEach(days) { day in
-                let isSelected = calendar.isDate(day.date, inSameDayAs: selection)
-                let isFuture = day.date > Date()
-
-                Button {
-                    Haptics.select()
-                    withAnimation(Motion.morph) { selection = day.date }
-                } label: {
-                    VStack(spacing: 7) {
-                        Text(day.date.formatted(.dateTime.weekday(.narrow)).uppercased())
-                            .font(.system(size: 9.5, weight: .semibold))
-                            .tracking(0.6)
-                            .foregroundStyle(isSelected ? Palette.onInk.opacity(0.65) : Palette.inkFaint)
-
-                        Text(day.date.formatted(.dateTime.day()))
-                            .font(.system(size: 14, weight: .semibold))
-                            .monospacedDigit()
-                            .foregroundStyle(
-                                isSelected ? Palette.onInk
-                                : (isFuture ? Palette.inkFaint : Palette.ink)
-                            )
-
-                        Circle()
-                            .fill(day.activity > 0
-                                  ? (isSelected ? Palette.onInk : day.accent.color)
-                                  : .clear)
-                            .frame(width: 4, height: 4)
-                            .opacity(day.activity > 0 ? max(0.4, day.activity) : 0)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 9)
-                    .background {
-                        if isSelected {
-                            RoundedRectangle.soft(16)
-                                .fill(Palette.inkSolid)
-                                .matchedGeometryEffect(id: "day", in: namespace)
-                        }
-                    }
-                    .contentShape(RoundedRectangle.soft(16))
+        GlassRail(spacing: Space.xs) {
+            HStack(spacing: 2) {
+                ForEach(days) { day in
+                    dayCell(day)
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(day.date.formatted(.dateTime.weekday(.wide).day().month(.wide)))
-                .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
             }
         }
+    }
+
+    private func dayCell(_ day: DayMarker) -> some View {
+        let isSelected = calendar.isDate(day.date, inSameDayAs: selection)
+        let isFuture = day.date > Date()
+
+        return Button {
+            Haptics.select()
+            withAnimation(Motion.morph) { selection = day.date }
+        } label: {
+            VStack(spacing: 7) {
+                Text(day.date.formatted(.dateTime.weekday(.narrow)).uppercased())
+                    .font(.system(size: 9.5, weight: .semibold))
+                    .tracking(0.6)
+                    .foregroundStyle(isSelected ? Palette.onInk.opacity(0.65) : Palette.inkFaint)
+
+                Text(day.date.formatted(.dateTime.day()))
+                    .font(.system(size: 14, weight: .semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(
+                        isSelected ? Palette.onInk
+                        : (isFuture ? Palette.inkFaint : Palette.ink)
+                    )
+
+                Circle()
+                    .fill(day.activity > 0
+                          ? (isSelected ? Palette.onInk : day.accent.color)
+                          : .clear)
+                    .frame(width: 4, height: 4)
+                    .opacity(day.activity > 0 ? max(0.4, day.activity) : 0)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 9)
+            .background {
+                if isSelected {
+                    Color.clear
+                        .liquidGlass(in: RoundedRectangle.soft(16),
+                                     tint: Palette.inkSolid,
+                                     interactive: true)
+                        .glassMorphID("day", in: glassNamespace)
+                        .matchedGeometryEffect(id: "day", in: namespace)
+                }
+            }
+            .contentShape(RoundedRectangle.soft(16))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(day.date.formatted(.dateTime.weekday(.wide).day().month(.wide)))
+        .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
     }
 }
 
@@ -154,38 +175,58 @@ struct FilterRail<Item: Hashable>: View {
 
     var body: some View {
         ScrollView(.horizontal) {
-            HStack(spacing: Space.xs) {
-                ForEach(items, id: \.self) { item in
-                    let isOn = selection.contains(item)
-                    Button {
-                        Haptics.select()
-                        withAnimation(Motion.morph) {
-                            if isOn { selection.remove(item) } else { selection.insert(item) }
-                        }
-                    } label: {
-                        Text(title(item))
-                            .font(Typeface.action)
-                            .foregroundStyle(isOn ? Palette.onInk : Palette.inkSoft)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8.5)
-                            .background {
-                                Capsule(style: .continuous)
-                                    .fill(isOn ? accent(item) : Palette.surface)
-                            }
-                            .overlay {
-                                Capsule(style: .continuous)
-                                    .strokeBorder(isOn ? .clear : Palette.hairline,
-                                                  lineWidth: Stroke.hairline)
-                            }
+            // Los chips comparten contenedor de cristal: mientras el riel se
+            // desplaza se atraen y se separan entre ellos en vez de pasar como
+            // pastillas opacas independientes.
+            GlassRail(spacing: Space.sm) {
+                HStack(spacing: Space.xs) {
+                    ForEach(items, id: \.self) { item in
+                        chip(item)
                     }
-                    .buttonStyle(.pressableCard)
-                    .accessibilityAddTraits(isOn ? [.isSelected, .isButton] : .isButton)
                 }
+                .padding(.horizontal, Space.screen)
             }
-            .padding(.horizontal, Space.screen)
         }
         .scrollIndicators(.hidden)
         .tightHorizontalRail()
+    }
+
+    private func chip(_ item: Item) -> some View {
+        let isOn = selection.contains(item)
+
+        return Button {
+            Haptics.select()
+            withAnimation(Motion.morph) {
+                if isOn { selection.remove(item) } else { selection.insert(item) }
+            }
+        } label: {
+            Text(title(item))
+                .font(Typeface.action)
+                .foregroundStyle(isOn ? Palette.onInk : Palette.inkSoft)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8.5)
+                .modifier(ChipGlass(isOn: isOn, accent: accent(item)))
+        }
+        .buttonStyle(.pressableCard)
+        .accessibilityAddTraits(isOn ? [.isSelected, .isButton] : .isButton)
+    }
+}
+
+/// El chip activo es cristal teñido con su acento; el inactivo, cristal neutro.
+/// Se extrae a un modificador porque las dos ramas devuelven tipos distintos y
+/// un `if` dentro del `label` haría que el cristal se re-cree en cada toque,
+/// perdiendo la transición.
+private struct ChipGlass: ViewModifier {
+    let isOn: Bool
+    let accent: Color
+
+    func body(content: Content) -> some View {
+        if isOn {
+            content.liquidGlass(in: Capsule(style: .continuous),
+                                tint: accent, interactive: true)
+        } else {
+            content.glassCapsule(role: .control, interactive: true, shadow: false)
+        }
     }
 }
 

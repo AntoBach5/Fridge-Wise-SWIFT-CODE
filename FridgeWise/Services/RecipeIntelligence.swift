@@ -81,7 +81,7 @@ enum GenerationError: LocalizedError {
         case .notEnoughIngredients(let minimum):
             String(localized: "Necesitamos al menos \(minimum) ingredientes para proponerte algo bueno.")
         case .limitReached:
-            String(localized: "Llegaste al límite de recetas con IA de hoy.")
+            String(localized: "Llegaste al límite de recetas con IA de esta semana.")
         case .moderationRejected:
             String(localized: "No pudimos generar una receta segura con esos ingredientes.")
         case .offline:

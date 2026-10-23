@@ -23,6 +23,7 @@ struct KitchenView: View {
     @State private var isCalendarExpanded = false
     @State private var isPickingRecipe = false
     @State private var editingIngredient: IngredientEditorSheet.Target?
+    @State private var editingPlan: CookPlan?
 
     var body: some View {
         ScrollView {
@@ -63,6 +64,12 @@ struct KitchenView: View {
         }
         .sheet(item: $editingIngredient) { target in
             IngredientEditorSheet(target: target)
+                .presentationDetents([.large])
+                .presentationCornerRadius(Radius.sheet)
+                .presentationBackground(Palette.canvas)
+        }
+        .sheet(item: $editingPlan) { plan in
+            CookPlanEditorSheet(plan: plan)
                 .presentationDetents([.large])
                 .presentationCornerRadius(Radius.sheet)
                 .presentationBackground(Palette.canvas)
@@ -115,33 +122,70 @@ struct KitchenView: View {
 
     // MARK: - Titular
 
+    /// Saludo por hora + nombre de quien abre la app, y la pregunta debajo.
+    ///
+    /// El nombre va en cursiva serif, no en el mismo peso que el saludo: es la
+    /// única palabra de la pantalla que es suya, y ponerla en cursiva la hace
+    /// personal sin gritar. Si el nombre falta, la coma desaparece con él —
+    /// "Buenos días, " con un hueco detrás es peor que no saludar por nombre.
     private var hero: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(greeting)
-                .displayStyle(33)
+            greetingLine
+                .tracking(-0.6)
+                .foregroundStyle(Palette.ink)
+                .lineLimit(2)
+                .minimumScaleFactor(0.72)
+                .fixedSize(horizontal: false, vertical: true)
 
-            HStack(spacing: 9) {
+            HStack(spacing: 8) {
+                Text(String(localized: "¿Qué"))
+                    .displayStyle(29)
                 Text(String(localized: "cocinamos"))
-                    .font(Typeface.displayItalic(33))
+                    .font(Typeface.displayItalic(29))
                     .foregroundStyle(Palette.ink)
                     .squiggleUnderline(Palette.turmeric)
                 Text(String(localized: "hoy?"))
-                    .displayStyle(33)
+                    .displayStyle(29)
             }
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
             .padding(.bottom, Space.xxs)
         }
         .screenPadding()
         .padding(.top, Space.xs)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(greeting) \(String(localized: "cocinamos hoy?"))")
+        .accessibilityLabel("\(spokenGreeting). \(String(localized: "¿Qué cocinamos hoy?"))")
     }
 
-    private var greeting: String {
+    private var greetingLine: Text {
+        let base = Text(timeGreeting).font(Typeface.display(31))
+        guard !firstName.isEmpty else { return base }
+
+        return base
+            + Text(", ").font(Typeface.display(31))
+            + Text(firstName).font(Typeface.displayItalic(31))
+    }
+
+    private var timeGreeting: String {
         switch Calendar.current.component(.hour, from: .now) {
-        case 5..<12:  String(localized: "Buenos días. ¿Qué")
-        case 12..<19: String(localized: "Buenas tardes. ¿Qué")
-        default:      String(localized: "Buenas noches. ¿Qué")
+        case 5..<12:  String(localized: "Buenos días")
+        case 12..<21: String(localized: "Buenas tardes")
+        default:      String(localized: "Buenas noches")
         }
+    }
+
+    /// Solo el nombre de pila. "Buenos días, Alejandro Bachmann Ruiz" no es un
+    /// saludo, es el encabezado de una factura.
+    private var firstName: String {
+        app.profile.displayName
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .split(separator: " ")
+            .first
+            .map(String.init) ?? ""
+    }
+
+    private var spokenGreeting: String {
+        firstName.isEmpty ? timeGreeting : "\(timeGreeting), \(firstName)"
     }
 
     // MARK: - Constelación de despensa
@@ -290,7 +334,9 @@ struct KitchenView: View {
             } else {
                 VStack(spacing: 0) {
                     ForEach(Array(plans.enumerated()), id: \.element.id) { index, plan in
-                        planRow(plan)
+                        SwipeableRow(onDelete: { app.removePlan(plan) }) {
+                            planRow(plan)
+                        }
                         if index < plans.count - 1 {
                             Hairline(inset: 34)
                         }
@@ -302,6 +348,7 @@ struct KitchenView: View {
                     RoundedRectangle.soft(Radius.card)
                         .strokeBorder(Palette.hairline, lineWidth: Stroke.hairline)
                 }
+                .clipShape(RoundedRectangle.soft(Radius.card))
             }
 
             Button {
@@ -325,6 +372,16 @@ struct KitchenView: View {
         .motion(Motion.standard, value: plans.count)
     }
 
+    /// Tocar la fila abre el editor del plan. Es el sitio donde el usuario se
+    /// da cuenta de que lo agendó para el día equivocado o de que el aviso le
+    /// queda tarde — y por tanto es desde donde tiene que poder arreglarlo,
+    /// sin borrar el plan y volver a buscar la receta entre cincuenta.
+    ///
+    /// El toque es un `onTapGesture` y no un `Button` por una razón concreta:
+    /// la fila va dentro de un `SwipeableRow`, y un botón que ocupa la fila
+    /// entera gana la prioridad del gesto y se come el arrastre. Con un tap
+    /// (que exige cero movimiento) y el drag del contenedor conviven: tocar
+    /// abre, deslizar borra, y el scroll vertical sigue siendo del scroll view.
     private func planRow(_ plan: CookPlan) -> some View {
         HStack(spacing: Space.sm) {
             AccentDot(color: Palette.basil, size: 8, filled: true)
@@ -336,33 +393,43 @@ struct KitchenView: View {
                     .foregroundStyle(Palette.ink)
                     .lineLimit(1)
 
-                if let remindsAt = plan.remindsAt {
-                    HStack(spacing: 4) {
+                HStack(spacing: 4) {
+                    if let remindsAt = plan.remindsAt {
                         Image(systemName: "bell")
                             .font(.system(size: 8, weight: .semibold))
                         Text(remindsAt.formatted(.dateTime.hour().minute()))
                             .font(Typeface.micro)
+                    } else {
+                        Image(systemName: "bell.slash")
+                            .font(.system(size: 8, weight: .semibold))
+                        Text(String(localized: "Sin aviso"))
+                            .font(Typeface.micro)
                     }
-                    .foregroundStyle(Palette.inkFaint)
                 }
+                .foregroundStyle(Palette.inkFaint)
             }
 
             Spacer(minLength: Space.xs)
 
-            Button {
-                app.removePlan(plan)
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(Palette.inkFaint)
-                    .frame(width: 30, height: 30)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(String(localized: "Quitar del calendario"))
+            Image(systemName: "slider.horizontal.3")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Palette.inkFaint)
+                .frame(width: 30, height: 30)
         }
         .padding(.horizontal, Space.md)
         .padding(.vertical, 10)
+        .background(Palette.surface)
+        .contentShape(Rectangle())
+        .onTapGesture { openEditor(for: plan) }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityHint(String(localized: "Toca para cambiar el día o el recordatorio"))
+        .accessibilityAction { openEditor(for: plan) }
+    }
+
+    private func openEditor(for plan: CookPlan) {
+        Haptics.select()
+        editingPlan = plan
     }
 
     private var weekMarkers: [WeekStrip.DayMarker] {
@@ -489,11 +556,11 @@ struct KitchenView: View {
                         .foregroundStyle(Palette.ink)
                         .padding(.bottom, Space.xxs)
 
-                    Text(String(localized: "Escanea tu nevera"))
+                    Text(String(localized: "Escanea tu nevera o el ticket"))
                         .font(Typeface.cardTitle)
                         .foregroundStyle(Palette.ink)
 
-                    Text(String(localized: "Una foto y sabemos qué tienes. Tardas menos que en abrir el cajón de las verduras."))
+                    Text(String(localized: "Una foto a los estantes, o al ticket de la compra, y sabemos qué tienes."))
                         .font(Typeface.callout)
                         .foregroundStyle(Palette.inkSoft)
                         .multilineTextAlignment(.leading)
@@ -541,7 +608,13 @@ struct KitchenView: View {
 
             VStack(spacing: 0) {
                 ForEach(Array(app.expiringSoon.prefix(4).enumerated()), id: \.element.id) { index, item in
-                    expiringRow(item)
+                    // Deslizar borra el producto de la despensa. Esta lista es
+                    // justo donde el usuario descubre que ya se comió o tiró
+                    // algo, y hasta ahora el único camino era entrar al editor
+                    // y buscar el botón de borrar dentro.
+                    SwipeableRow(onDelete: { app.removeIngredient(item) }) {
+                        expiringRow(item)
+                    }
                     if index < min(app.expiringSoon.count, 4) - 1 {
                         Hairline(inset: 34)
                     }
@@ -555,50 +628,51 @@ struct KitchenView: View {
                 RoundedRectangle.soft(Radius.card)
                     .strokeBorder(Palette.hairline, lineWidth: Stroke.hairline)
             }
+            .clipShape(RoundedRectangle.soft(Radius.card))
             .screenPadding()
         }
     }
 
     /// Tocar la fila abre el editor. Es donde el usuario se da cuenta de que la
     /// fecha está mal — que es justo cuando tiene que poder arreglarla.
+    /// Deslizar la borra. Igual que en `planRow`, el toque es un gesto y no un
+    /// `Button`: un botón de fila completa le robaría el arrastre al swipe.
     private func expiringRow(_ item: Ingredient) -> some View {
-        Button {
-            Haptics.select()
-            editingIngredient = .existing(item)
-        } label: {
-            HStack(spacing: Space.sm) {
-                AccentDot(color: item.freshness.accent.color, size: 8)
+        HStack(spacing: Space.sm) {
+            AccentDot(color: item.freshness.accent.color, size: 8)
 
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(item.name)
-                        .font(Typeface.headline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(Palette.ink)
-                    if let quantity = item.quantity {
-                        Text(quantity)
-                            .font(Typeface.micro)
-                            .foregroundStyle(Palette.inkFaint)
-                    }
+            VStack(alignment: .leading, spacing: 1) {
+                Text(item.name)
+                    .font(Typeface.headline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(Palette.ink)
+                if let quantity = item.quantity {
+                    Text(quantity)
+                        .font(Typeface.micro)
+                        .foregroundStyle(Palette.inkFaint)
                 }
-
-                Spacer(minLength: Space.xs)
-
-                Text(item.expiryDescription ?? "")
-                    .font(Typeface.micro)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(item.freshness.accent.color)
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(Palette.inkFaint)
             }
-            .padding(.horizontal, Space.md)
-            .padding(.vertical, 11)
-            .contentShape(Rectangle())
+
+            Spacer(minLength: Space.xs)
+
+            Text(item.expiryDescription ?? "")
+                .font(Typeface.micro)
+                .fontWeight(.semibold)
+                .foregroundStyle(item.freshness.accent.color)
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(Palette.inkFaint)
         }
-        .buttonStyle(.pressableCard)
+        .padding(.horizontal, Space.md)
+        .padding(.vertical, 11)
+        .background(Palette.surface)
+        .contentShape(Rectangle())
+        .onTapGesture { editingIngredient = .existing(item) }
         .accessibilityElement(children: .combine)
-        .accessibilityHint(String(localized: "Toca para corregir cantidad o fecha"))
+        .accessibilityAddTraits(.isButton)
+        .accessibilityHint(String(localized: "Toca para corregir cantidad o fecha, o desliza para borrarlo"))
+        .accessibilityAction { editingIngredient = .existing(item) }
     }
 
     // MARK: - Ritmo
@@ -650,7 +724,7 @@ struct KitchenView: View {
         SoftCard(tint: Palette.turmeric) {
             VStack(alignment: .leading, spacing: Space.sm) {
                 HStack {
-                    Text(String(localized: "Plan gratuito")).eyebrow(Palette.turmeric)
+                    Text(String(localized: "Plan gratuito · esta semana")).eyebrow(Palette.turmeric)
                     Spacer()
                     Button(String(localized: "Ver Premium")) {
                         app.isPresentingPaywall = true

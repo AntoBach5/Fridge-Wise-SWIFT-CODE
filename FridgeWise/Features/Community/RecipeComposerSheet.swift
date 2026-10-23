@@ -65,6 +65,7 @@ struct RecipeComposerSheet: View {
                 .padding(.bottom, 140)
             }
             .scrollIndicators(.hidden)
+            .lockedVerticalScroll()
             .dismissKeyboardOnDrag()
             .safeAreaInset(edge: .bottom) { footer }
         }

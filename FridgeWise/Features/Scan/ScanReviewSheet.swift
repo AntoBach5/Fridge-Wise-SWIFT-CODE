@@ -18,6 +18,10 @@ import SwiftUI
 struct ScanReviewSheet: View {
 
     @Binding var detected: [Ingredient]
+    /// Qué se escaneó. Solo cambia el copy y el acento: un ticket leído por OCR
+    /// y una nevera reconocida por visión se revisan exactamente igual, y
+    /// duplicar esta hoja por modo habría sido duplicar el bug de mañana.
+    var subject: ScanSubject = .pantry
     var onConfirm: ([Ingredient]) -> Void
     var onRetake: () -> Void
 
@@ -54,6 +58,7 @@ struct ScanReviewSheet: View {
             .padding(.bottom, 140)
         }
         .scrollIndicators(.hidden)
+        .lockedVerticalScroll()
         .dismissKeyboardOnDrag()
         .canvasBackground()
         .safeAreaInset(edge: .bottom) { footer }
@@ -63,7 +68,7 @@ struct ScanReviewSheet: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: Space.xs) {
-            Text(String(localized: "Encontramos esto")).eyebrow(Palette.sage)
+            Text(subject.reviewEyebrow).eyebrow(subject.accent.color)
 
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text("\(kept.count)")
@@ -73,10 +78,12 @@ struct ScanReviewSheet: View {
                 Text(String(localized: "ingredientes"))
                     .font(Typeface.displayItalic(30))
                     .foregroundStyle(Palette.ink)
-                    .squiggleUnderline(Palette.sage, delay: 0.15)
+                    .squiggleUnderline(subject.accent.color, delay: 0.15)
             }
 
-            Text(String(localized: "Saca lo que no corresponda. Lo que confirmes se suma a tu despensa."))
+            Text(subject == .receipt
+                 ? String(localized: "El ticket trae nombres comerciales: corrige lo que haga falta y saca lo que no sea comida. Lo que confirmes se suma a tu despensa.")
+                 : String(localized: "Saca lo que no corresponda. Lo que confirmes se suma a tu despensa."))
                 .bodyStyle()
                 .padding(.top, Space.xxs)
         }

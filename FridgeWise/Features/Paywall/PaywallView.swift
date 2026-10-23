@@ -46,6 +46,7 @@ struct PaywallView: View {
                 .padding(.bottom, 220)
             }
             .scrollIndicators(.hidden)
+            .lockedVerticalScroll()
 
             VStack {
                 closeButton
@@ -122,12 +123,12 @@ struct PaywallView: View {
 
     private var benefits: some View {
         VStack(spacing: 0) {
-            comparisonRow(String(localized: "Escaneos por día"),
-                          free: "\(PlanLimits.free.scansPerDay)",
+            comparisonRow(String(localized: "Escaneos por semana"),
+                          free: "\(PlanLimits.free.scansPerWeek)",
                           premium: String(localized: "Sin tope"))
             Hairline()
-            comparisonRow(String(localized: "Recetas con IA por día"),
-                          free: "\(PlanLimits.free.aiGenerationsPerDay)",
+            comparisonRow(String(localized: "Recetas con IA por semana"),
+                          free: "\(PlanLimits.free.aiGenerationsPerWeek)",
                           premium: String(localized: "Sin tope"))
             Hairline()
             comparisonRow(String(localized: "Recetas guardadas"),

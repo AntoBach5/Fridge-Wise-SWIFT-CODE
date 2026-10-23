@@ -28,6 +28,69 @@ protocol FridgeScanning: Sendable {
     func scan(_ image: UIImage) -> AsyncThrowingStream<ScanPhase, Error>
 }
 
+// MARK: - Qué se está escaneando
+
+/// Las dos formas de cargar la despensa con la cámara.
+///
+/// Son dos motores distintos (visión sobre objetos vs. OCR sobre texto) pero
+/// una sola pantalla: el usuario no tiene que decidir en qué sección de la app
+/// entra, elige en el visor como elige entre foto y vídeo en la cámara nativa.
+enum ScanSubject: String, CaseIterable, Identifiable, Sendable {
+    case pantry
+    case receipt
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .pantry:  String(localized: "Nevera")
+        case .receipt: String(localized: "Ticket")
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .pantry:  "refrigerator"
+        case .receipt: "doc.text.viewfinder"
+        }
+    }
+
+    /// Qué se le pide al usuario en el visor.
+    var framingHint: String {
+        switch self {
+        case .pantry:
+            String(localized: "Abre la puerta del todo y encuadra los estantes")
+        case .receipt:
+            String(localized: "Apoya el ticket estirado y que entre entero en el marco")
+        }
+    }
+
+    /// Proporción del marco de encuadre. Un ticket es alto y estrecho; forzar
+    /// el encuadre correcto sube la tasa de acierto del OCR más que cualquier
+    /// ajuste del modelo.
+    var viewfinderSize: CGSize {
+        switch self {
+        case .pantry:  CGSize(width: 290, height: 380)
+        case .receipt: CGSize(width: 230, height: 420)
+        }
+    }
+
+    var accent: AccentFamily {
+        switch self {
+        case .pantry:  .sage
+        case .receipt: .turmeric
+        }
+    }
+
+    /// Titular de la hoja de revisión.
+    var reviewEyebrow: String {
+        switch self {
+        case .pantry:  String(localized: "Encontramos esto")
+        case .receipt: String(localized: "Leímos esto en el ticket")
+        }
+    }
+}
+
 /// Etapas del análisis. Cada una tiene copy propio en la UI: el usuario ve
 /// "Buscando en los estantes" y no una barra anónima.
 enum ScanPhase: Sendable, Equatable {
@@ -37,14 +100,31 @@ enum ScanPhase: Sendable, Equatable {
     case detected(Ingredient)
     case finished(ScanResult)
 
-    var caption: String {
+    /// Copy del avance. Depende de qué se escaneó: "recorriendo los estantes"
+    /// sobre un ticket se lee como un bug, y el usuario nota esas cosas.
+    func caption(for subject: ScanSubject) -> String {
         switch self {
-        case .preparing:          String(localized: "Enfocando la nevera")
-        case .analyzing(let p) where p < 0.4: String(localized: "Recorriendo los estantes")
-        case .analyzing(let p) where p < 0.75: String(localized: "Identificando ingredientes")
-        case .analyzing:          String(localized: "Casi listo")
-        case .detected(let item): String(localized: "Encontré \(item.name)")
-        case .finished:           String(localized: "Listo")
+        case .preparing:
+            switch subject {
+            case .pantry:  String(localized: "Enfocando la nevera")
+            case .receipt: String(localized: "Enderezando el ticket")
+            }
+        case .analyzing(let progress) where progress < 0.4:
+            switch subject {
+            case .pantry:  String(localized: "Recorriendo los estantes")
+            case .receipt: String(localized: "Leyendo las líneas")
+            }
+        case .analyzing(let progress) where progress < 0.75:
+            switch subject {
+            case .pantry:  String(localized: "Identificando ingredientes")
+            case .receipt: String(localized: "Separando productos de importes")
+            }
+        case .analyzing:
+            String(localized: "Casi listo")
+        case .detected(let item):
+            String(localized: "Encontré \(item.name)")
+        case .finished:
+            String(localized: "Listo")
         }
     }
 }
@@ -53,6 +133,8 @@ enum ScanError: LocalizedError {
     case cameraUnavailable
     case imageTooDark
     case noIngredientsFound
+    /// El OCR no sacó texto utilizable del ticket.
+    case receiptUnreadable
     case limitReached(resetsAt: Date)
     case cancelled
 
@@ -64,8 +146,10 @@ enum ScanError: LocalizedError {
             String(localized: "La foto salió muy oscura para reconocer nada.")
         case .noIngredientsFound:
             String(localized: "No reconocimos ingredientes en esta foto.")
+        case .receiptUnreadable:
+            String(localized: "No pudimos leer el ticket.")
         case .limitReached:
-            String(localized: "Llegaste al límite de escaneos de hoy.")
+            String(localized: "Llegaste al límite de escaneos de esta semana.")
         case .cancelled:
             String(localized: "Escaneo cancelado.")
         }
@@ -79,8 +163,10 @@ enum ScanError: LocalizedError {
             String(localized: "Abre la puerta del todo o enciende la luz de la cocina.")
         case .noIngredientsFound:
             String(localized: "Prueba acercándote un poco o añade los ingredientes a mano.")
+        case .receiptUnreadable:
+            String(localized: "Estíralo sobre una superficie plana, con buena luz y sin sombras encima.")
         case .limitReached:
-            String(localized: "Vuelve mañana, canjea puntos por escaneos extra, o pásate a Premium.")
+            String(localized: "El contador se reinicia el lunes. También puedes canjear puntos por escaneos extra o pasarte a Premium.")
         case .cancelled:
             nil
         }
