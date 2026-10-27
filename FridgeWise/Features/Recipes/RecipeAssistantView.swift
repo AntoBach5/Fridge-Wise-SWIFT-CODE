@@ -51,7 +51,7 @@ struct RecipeAssistantBar: View {
         } label: {
             HStack(spacing: Space.sm) {
                 Image(systemName: "sparkle.magnifyingglass")
-                    .font(.system(size: 15, weight: .medium))
+                    .font(Typeface.scaled(15, weight: .medium))
                     .foregroundStyle(accent)
 
                 // El índice se acota al leer, no al escribir: la lista de
@@ -69,7 +69,7 @@ struct RecipeAssistantBar: View {
                 Spacer(minLength: 0)
 
                 Image(systemName: "arrow.up.circle.fill")
-                    .font(.system(size: 20))
+                    .font(Typeface.scaled(20))
                     .foregroundStyle(accent.opacity(0.55))
             }
             .padding(.horizontal, Space.md)
@@ -199,7 +199,7 @@ struct RecipeAssistantView: View {
             ZStack {
                 Circle().fill(Palette.plum.opacity(0.15))
                 Image(systemName: "sparkles")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Typeface.scaled(14, weight: .medium))
                     .foregroundStyle(Palette.plum)
             }
             .frame(width: 36, height: 36)
@@ -220,7 +220,7 @@ struct RecipeAssistantView: View {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Typeface.scaled(13, weight: .semibold))
                     .foregroundStyle(Palette.inkSoft)
                     .frame(width: 34, height: 34)
                     .liquidGlass(in: Circle(), role: .control, interactive: true, shadow: false)
@@ -306,7 +306,7 @@ struct RecipeAssistantView: View {
                 Spacer(minLength: 0)
 
                 Image(systemName: "arrow.up.right")
-                    .font(.system(size: 10, weight: .bold))
+                    .font(Typeface.scaled(10, weight: .bold))
                     .foregroundStyle(Palette.plum)
             }
             .padding(.horizontal, Space.md)
@@ -357,10 +357,11 @@ struct RecipeAssistantView: View {
                 send(draft)
             } label: {
                 Image(systemName: "arrow.up")
-                    .font(.system(size: 13, weight: .bold))
+                    .font(Typeface.scaled(13, weight: .bold))
                     .foregroundStyle(Palette.onInk)
                     .frame(width: 32, height: 32)
                     .background { Circle().fill(canSend ? Palette.plum : Palette.inkFaint) }
+                    .hitTarget(size: 32)
             }
             .buttonStyle(.plain)
             .disabled(!canSend)
@@ -412,15 +413,18 @@ struct RecipeAssistantView: View {
         try? await Task.sleep(for: .milliseconds(reduceMotion ? 250 : 900))
         guard !Task.isCancelled else { return }
 
+        let reply = String(localized: "Todavía no sé contestar esto — estoy aprendiendo a leer tu despensa. Tu pregunta queda guardada en esta conversación. Mientras tanto, «Generar con lo que tienes» te arma una receta con lo que hay ahora mismo.")
         withAnimation(Motion.standard) {
             isThinking = false
             messages.append(AssistantMessage(
                 author: .assistant,
-                text: String(localized: "Todavía no sé contestar esto — estoy aprendiendo a leer tu despensa. Tu pregunta queda guardada en esta conversación. Mientras tanto, «Generar con lo que tienes» te arma una receta con lo que hay ahora mismo."),
+                text: reply,
                 isSystemNote: true
             ))
         }
         Haptics.tick()
+        // La respuesta aparece fuera del foco de VoiceOver: se anuncia.
+        AccessibilityNotification.Announcement(reply).post()
     }
 }
 

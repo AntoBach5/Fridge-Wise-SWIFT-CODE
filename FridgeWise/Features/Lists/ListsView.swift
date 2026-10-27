@@ -93,7 +93,7 @@ struct ListsView: View {
                 .disabled(completedItems.isEmpty)
             } label: {
                 Image(systemName: "ellipsis")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(Typeface.scaled(14, weight: .semibold))
                     .foregroundStyle(completedItems.isEmpty ? Palette.inkFaint : Palette.ink)
                     .frame(width: 34, height: 34)
                     .background { Circle().fill(Palette.surface) }
@@ -120,7 +120,7 @@ struct ListsView: View {
     private var composer: some View {
         HStack(spacing: Space.xs) {
             Image(systemName: "plus")
-                .font(.system(size: 13, weight: .semibold))
+                .font(Typeface.scaled(13, weight: .semibold))
                 .foregroundStyle(isComposing ? kind.accent.color : Palette.inkFaint)
 
             TextField(
@@ -140,10 +140,11 @@ struct ListsView: View {
                     addItem()
                 } label: {
                     Image(systemName: "arrow.up")
-                        .font(.system(size: 12, weight: .bold))
+                        .font(Typeface.scaled(12, weight: .bold))
                         .foregroundStyle(Palette.onInk)
                         .frame(width: 28, height: 28)
                         .background { Circle().fill(kind.accent.color) }
+                        .hitTarget(size: 28)
                 }
                 .transition(.scale.combined(with: .opacity))
                 .accessibilityLabel(String(localized: "Añadir"))
@@ -227,6 +228,7 @@ struct ListsView: View {
                 app.toggleItem(item)
             } label: {
                 DrawnCheckbox(isOn: item.isDone, accent: item.accent.color)
+                    .hitTarget(size: 24)
             }
             .buttonStyle(.plain)
             .accessibilityLabel(item.isDone
@@ -251,7 +253,7 @@ struct ListsView: View {
                     if let recipeTitle = item.recipeTitle {
                         HStack(spacing: 3) {
                             Image(systemName: "arrow.turn.up.right")
-                                .font(.system(size: 7.5, weight: .bold))
+                                .font(Typeface.scaled(7.5, weight: .bold))
                             Text(recipeTitle)
                                 .lineLimit(1)
                         }
@@ -266,9 +268,10 @@ struct ListsView: View {
             if item.kind == .toCook, let recipeID = item.recipeID {
                 NavigationLink(value: Route.recipeDetail(recipeID)) {
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(Typeface.scaled(11, weight: .semibold))
                         .foregroundStyle(Palette.inkFaint)
                         .frame(width: 30, height: 30)
+                        .hitTarget(size: 30)
                 }
                 .accessibilityLabel(String(localized: "Abrir receta"))
             }
@@ -291,7 +294,7 @@ struct ListsView: View {
                 } label: {
                     HStack(spacing: 7) {
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 9, weight: .bold))
+                            .font(Typeface.scaled(9, weight: .bold))
                             .rotationEffect(.degrees(showsCompleted ? 90 : 0))
                         Text(String(localized: "Completados")).eyebrow()
                         Spacer()
@@ -301,8 +304,12 @@ struct ListsView: View {
                             .foregroundStyle(Palette.inkFaint)
                     }
                     .foregroundStyle(Palette.inkFaint)
+                    .hitTarget(vertical: 12)
                 }
                 .buttonStyle(.plain)
+                .accessibilityValue(showsCompleted
+                    ? String(localized: "Desplegado")
+                    : String(localized: "Plegado"))
                 .screenPadding()
 
                 if showsCompleted {
@@ -371,7 +378,7 @@ struct SwipeableRow<Content: View>: View {
                     commit()
                 } label: {
                     Image(systemName: "trash")
-                        .font(.system(size: 15, weight: .medium))
+                        .font(Typeface.scaled(15, weight: .medium))
                         .foregroundStyle(Palette.onInk)
                         .frame(width: actionWidth)
                         .frame(maxHeight: .infinity)

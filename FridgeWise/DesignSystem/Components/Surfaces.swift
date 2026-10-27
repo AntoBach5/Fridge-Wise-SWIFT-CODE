@@ -57,17 +57,23 @@ struct SectionHeader<Trailing: View>: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: Space.sm) {
-            Text(title).eyebrow(accent)
+            HStack(alignment: .center, spacing: Space.sm) {
+                Text(title).eyebrow(accent)
 
-            Rectangle()
-                .fill(Palette.hairline)
-                .frame(height: Stroke.hairline)
-                .frame(maxWidth: .infinity)
+                Rectangle()
+                    .fill(Palette.hairline)
+                    .frame(height: Stroke.hairline)
+                    .frame(maxWidth: .infinity)
+                    .accessibilityHidden(true)
+            }
+            // Solo el título es encabezado. Si el lado derecho trae un botón
+            // ("Ver todo", "Ver mes"), tiene que quedar como control propio
+            // para VoiceOver en vez de fundirse con el encabezado.
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isHeader)
 
             trailing
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isHeader)
     }
 }
 
@@ -92,7 +98,7 @@ struct InfoChip: View {
         HStack(spacing: 5) {
             if let systemImage {
                 Image(systemName: systemImage)
-                    .font(.system(size: 10.5, weight: .semibold))
+                    .font(Typeface.scaled(10.5, weight: .semibold))
             }
             Text(label)
                 .font(Typeface.micro)

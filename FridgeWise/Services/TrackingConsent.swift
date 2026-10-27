@@ -96,7 +96,7 @@ struct TrackingPrimerView: View {
                 Circle().fill(Palette.surface)
                 FluidBackdrop(palette: .pantry, intensity: 0.3).clipShape(Circle())
                 Image(systemName: "hand.raised")
-                    .font(.system(size: 26, weight: .light))
+                    .font(Typeface.scaled(26, weight: .light, relativeTo: .title1))
                     .foregroundStyle(Palette.plum)
             }
             .frame(width: 88, height: 88)

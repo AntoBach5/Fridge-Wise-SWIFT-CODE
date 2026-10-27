@@ -46,7 +46,7 @@ struct PointsShopView: View {
         .canvasBackground()
         .navigationTitle(String(localized: "Comprar puntos"))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Palette.canvas, for: .navigationBar)
+        .legacyNavigationBarBackground(Palette.canvas)
         .task {
             if app.store.pointPacks.isEmpty {
                 await app.store.loadProducts()
@@ -123,7 +123,7 @@ struct PointsShopView: View {
                 ZStack {
                     Circle().fill(pack.accent.color.opacity(0.15))
                     Image(systemName: "sparkles")
-                        .font(.system(size: 15, weight: .light))
+                        .font(Typeface.scaled(15, weight: .light))
                         .foregroundStyle(pack.accent.color)
                 }
                 .frame(width: 44, height: 44)
@@ -210,14 +210,20 @@ struct PointsShopView: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             HStack(spacing: Space.md) {
-                Button(String(localized: "Restaurar compras")) {
+                Button {
                     Task {
                         do { try await app.store.restorePurchases() }
                         catch { errorMessage = error.localizedDescription }
                     }
+                } label: {
+                    Text(String(localized: "Restaurar compras")).hitTarget(vertical: 14)
                 }
-                Link(String(localized: "Términos"), destination: SupportContact.termsURL)
-                Link(String(localized: "Privacidad"), destination: SupportContact.privacyURL)
+                Link(destination: SupportContact.termsURL) {
+                    Text(String(localized: "Términos")).hitTarget(vertical: 14)
+                }
+                Link(destination: SupportContact.privacyURL) {
+                    Text(String(localized: "Privacidad")).hitTarget(vertical: 14)
+                }
             }
             .font(Typeface.micro)
             .fontWeight(.semibold)

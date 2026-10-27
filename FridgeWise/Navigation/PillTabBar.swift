@@ -71,17 +71,21 @@ struct PillTabBar: View {
                 }
 
                 Image(systemName: isSelected ? tab.filledIcon : tab.icon)
-                    .font(.system(size: 16, weight: isSelected ? .semibold : .regular))
+                    .font(Typeface.scaled(16, weight: isSelected ? .semibold : .regular))
                     .foregroundStyle(isSelected ? Palette.onInk : Palette.onInk.opacity(0.48))
                     .symbolEffect(.bounce, value: isSelected && !reduceMotion)
-                    .frame(width: 52, height: 40)
+                    .frame(width: 52, height: 44)
             }
-            .frame(width: 52, height: 40)
+            // 44 pt de alto: mínimo de las HIG para objetivos táctiles.
+            .frame(width: 52, height: 44)
             .contentShape(Capsule(style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(tab.title)
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
+        .accessibilityShowsLargeContentViewer {
+            Label(tab.title, systemImage: tab.filledIcon)
+        }
     }
 
     // MARK: Botón de escaneo
@@ -99,7 +103,7 @@ struct PillTabBar: View {
                     .opacity(reduceMotion ? 0 : 0.8)
 
                 Image(systemName: "viewfinder")
-                    .font(.system(size: 19, weight: .medium))
+                    .font(Typeface.scaled(19, weight: .medium))
                     .foregroundStyle(Palette.onInk)
             }
             .frame(width: 54, height: 54)
@@ -108,6 +112,9 @@ struct PillTabBar: View {
             .shadow(color: Palette.tomato.opacity(0.34), radius: 18, x: 0, y: 9)
         }
         .buttonStyle(.pressableCard)
+        .accessibilityShowsLargeContentViewer {
+            Label(String(localized: "Escanear"), systemImage: "viewfinder")
+        }
         .accessibilityLabel(String(localized: "Escanear nevera"))
         .accessibilityHint(String(localized: "Abre la cámara para detectar ingredientes"))
     }

@@ -45,7 +45,7 @@ struct SettingsView: View {
         .canvasBackground()
         .navigationTitle(String(localized: "Ajustes"))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Palette.canvas, for: .navigationBar)
+        .legacyNavigationBarBackground(Palette.canvas)
         .manageSubscriptionsSheet(isPresented: $isManagingSubscription)
         .alert(String(localized: "Restaurar compras"),
                isPresented: Binding(get: { restoreMessage != nil },
@@ -172,8 +172,11 @@ struct SettingsView: View {
 
             Hairline(inset: 46)
 
-            row("flag", String(localized: "Reportes enviados"),
-                detail: "\(app.moderation.submittedReports.count)") {}
+            // Dato informativo, no un control: sin chevron ni botón que no
+            // lleva a ninguna parte (HIG · Lists: el disclosure indica navegación).
+            rowLabel("flag", String(localized: "Reportes enviados"),
+                     detail: "\(app.moderation.submittedReports.count)",
+                     showsDisclosure: false)
         }
     }
 
@@ -269,13 +272,14 @@ struct SettingsView: View {
         _ icon: String,
         _ title: String,
         detail: String? = nil,
-        accent: Color = Palette.ink
+        accent: Color = Palette.ink,
+        showsDisclosure: Bool = true
     ) -> some View {
         HStack(spacing: Space.sm) {
             ZStack {
                 Circle().fill(accent.opacity(0.10))
                 Image(systemName: icon)
-                    .font(.system(size: 12.5, weight: .medium))
+                    .font(Typeface.scaled(12.5, weight: .medium))
                     .foregroundStyle(accent)
             }
             .frame(width: 32, height: 32)
@@ -293,9 +297,11 @@ struct SettingsView: View {
                     .lineLimit(1)
             }
 
-            Image(systemName: "chevron.right")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(Palette.inkFaint)
+            if showsDisclosure {
+                Image(systemName: "chevron.right")
+                    .font(Typeface.scaled(10, weight: .semibold))
+                    .foregroundStyle(Palette.inkFaint)
+            }
         }
         .padding(.horizontal, Space.md)
         .padding(.vertical, 12)
@@ -374,7 +380,7 @@ struct BlockedUsersView: View {
         .canvasBackground()
         .navigationTitle(String(localized: "Bloqueados"))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Palette.canvas, for: .navigationBar)
+        .legacyNavigationBarBackground(Palette.canvas)
     }
 }
 
@@ -406,7 +412,7 @@ struct DataPrivacyView: View {
         .canvasBackground()
         .navigationTitle(String(localized: "Tus datos"))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Palette.canvas, for: .navigationBar)
+        .legacyNavigationBarBackground(Palette.canvas)
         .confirmationDialog(
             String(localized: "¿Borrar todo?"),
             isPresented: $showsDeleteConfirmation,
@@ -476,7 +482,7 @@ struct DataPrivacyView: View {
             ZStack {
                 Circle().fill(Palette.sage.opacity(0.12))
                 Image(systemName: icon)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(Typeface.scaled(12, weight: .medium))
                     .foregroundStyle(Palette.sage)
             }
             .frame(width: 32, height: 32)

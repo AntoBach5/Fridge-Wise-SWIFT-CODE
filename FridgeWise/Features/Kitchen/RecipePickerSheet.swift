@@ -80,7 +80,7 @@ struct RecipePickerSheet: View {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Typeface.scaled(13, weight: .semibold))
                     .foregroundStyle(Palette.inkSoft)
                     .frame(width: 34, height: 34)
                     .background { Circle().fill(Palette.surface) }
@@ -94,7 +94,7 @@ struct RecipePickerSheet: View {
     private var searchField: some View {
         HStack(spacing: Space.xs) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 12, weight: .semibold))
+                .font(Typeface.scaled(12, weight: .semibold))
                 .foregroundStyle(isSearching ? Palette.basil : Palette.inkFaint)
 
             TextField(String(localized: "Buscar entre tus recetas"), text: $query)
@@ -109,8 +109,9 @@ struct RecipePickerSheet: View {
                     withAnimation(Motion.tap) { query = "" }
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 14))
+                        .font(Typeface.scaled(14))
                         .foregroundStyle(Palette.inkFaint)
+                        .hitTarget(size: 18)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(String(localized: "Borrar búsqueda"))

@@ -107,7 +107,7 @@ struct IngredientEditorSheet: View {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Typeface.scaled(13, weight: .semibold))
                     .foregroundStyle(Palette.inkSoft)
                     .frame(width: 34, height: 34)
                     .background { Circle().fill(Palette.surface) }
@@ -168,7 +168,7 @@ struct IngredientEditorSheet: View {
                     } label: {
                         HStack(spacing: 6) {
                             Image(systemName: option.icon)
-                                .font(.system(size: 10, weight: .semibold))
+                                .font(Typeface.scaled(10, weight: .semibold))
                             Text(option.title)
                                 .font(Typeface.micro)
                                 .fontWeight(.semibold)
@@ -181,6 +181,7 @@ struct IngredientEditorSheet: View {
                             Capsule().strokeBorder(isOn ? .clear : Palette.hairline,
                                                    lineWidth: Stroke.hairline)
                         }
+                        .hitTarget(vertical: 4)
                     }
                     .buttonStyle(.plain)
                     .accessibilityAddTraits(isOn ? [.isSelected, .isButton] : .isButton)
@@ -205,7 +206,7 @@ struct IngredientEditorSheet: View {
                         .fontWeight(.semibold)
                         .foregroundStyle(Palette.inkSoft)
                         .padding(.vertical, 4)
-                        .contentShape(Rectangle())
+                        .hitTarget(horizontal: 4, vertical: 10)
                 }
                 .buttonStyle(.plain)
             }
@@ -253,6 +254,7 @@ struct IngredientEditorSheet: View {
                             Capsule().strokeBorder(isOn ? .clear : Palette.hairline,
                                                    lineWidth: Stroke.hairline)
                         }
+                        .hitTarget(vertical: 4)
                 }
                 .buttonStyle(.pressableCard)
                 .accessibilityAddTraits(isOn ? [.isSelected, .isButton] : .isButton)
@@ -269,7 +271,7 @@ struct IngredientEditorSheet: View {
         } label: {
             HStack(spacing: 7) {
                 Image(systemName: "trash")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Typeface.scaled(11, weight: .semibold))
                 Text(String(localized: "Quitar de la despensa"))
                     .font(Typeface.action)
             }

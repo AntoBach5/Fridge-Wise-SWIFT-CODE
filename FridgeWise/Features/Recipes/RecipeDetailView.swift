@@ -203,18 +203,22 @@ struct RecipeDetailView: View {
             Spacer()
             circleButton(
                 app.isSaved(recipe) ? "bookmark.fill" : "bookmark",
-                label: String(localized: "Guardar"),
+                label: app.isSaved(recipe)
+                    ? String(localized: "Quitar de guardadas")
+                    : String(localized: "Guardar receta"),
                 tint: app.isSaved(recipe) ? Palette.clay : Palette.ink
             ) {
                 app.toggleSave(recipe)
             }
             ShareLink(item: shareText) {
                 Image(systemName: "square.and.arrow.up")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Typeface.scaled(14, weight: .medium))
                     .foregroundStyle(Palette.ink)
                     .frame(width: 38, height: 38)
                     .liquidGlass(in: Circle(), role: .control, interactive: true, shadow: false)
+                    .hitTarget(size: 38)
             }
+            .accessibilityLabel(String(localized: "Compartir"))
             .simultaneousGesture(TapGesture().onEnded {
                 app.ledger.award(.recipeShared, note: recipe.title)
             })
@@ -238,10 +242,11 @@ struct RecipeDetailView: View {
             action()
         } label: {
             Image(systemName: icon)
-                .font(.system(size: 14, weight: .medium))
+                .font(Typeface.scaled(14, weight: .medium))
                 .foregroundStyle(tint)
                 .frame(width: 38, height: 38)
                 .liquidGlass(in: Circle(), role: .control, interactive: true, shadow: false)
+                .hitTarget(size: 38)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)
@@ -305,7 +310,7 @@ struct RecipeDetailView: View {
         SoftCard(padding: Space.md) {
             HStack(alignment: .top, spacing: Space.sm) {
                 Image(systemName: "chart.pie")
-                    .font(.system(size: 13, weight: .light))
+                    .font(Typeface.scaled(13, weight: .light))
                     .foregroundStyle(Palette.inkFaint)
                     .padding(.top, 1)
 
@@ -388,7 +393,7 @@ struct RecipeDetailView: View {
             SoftCard(padding: Space.md, tint: Palette.tomato) {
                 HStack(alignment: .top, spacing: Space.sm) {
                     Image(systemName: "exclamationmark.triangle")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Typeface.scaled(13, weight: .medium))
                         .foregroundStyle(Palette.tomato)
 
                     VStack(alignment: .leading, spacing: 4) {
@@ -482,7 +487,7 @@ struct RecipeDetailView: View {
                 ZStack {
                     Circle().fill(Palette.turmeric.opacity(0.16))
                     Image(systemName: "basket")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Typeface.scaled(13, weight: .medium))
                         .foregroundStyle(Palette.turmeric)
                 }
                 .frame(width: 38, height: 38)
@@ -541,7 +546,7 @@ struct RecipeDetailView: View {
         HStack(alignment: .top, spacing: Space.md) {
             // Número en serif: le da a la instrucción un tono de libro de cocina.
             Text("\(step.order)")
-                .font(.system(size: 19, weight: .regular, design: .serif))
+                .font(Typeface.scaled(19, weight: .regular, design: .serif))
                 .foregroundStyle(recipe.accent.color)
                 .frame(width: 26, alignment: .leading)
                 .padding(.top, 1)
@@ -591,7 +596,7 @@ struct RecipeDetailView: View {
                         ZStack {
                             Circle().fill(Palette.plum.opacity(0.14))
                             Image(systemName: "sparkles")
-                                .font(.system(size: 13, weight: .medium))
+                                .font(Typeface.scaled(13, weight: .medium))
                                 .foregroundStyle(Palette.plum)
                         }
                         .frame(width: 38, height: 38)
@@ -617,7 +622,7 @@ struct RecipeDetailView: View {
                     } label: {
                         HStack(spacing: 7) {
                             Image(systemName: "paperplane")
-                                .font(.system(size: 11, weight: .semibold))
+                                .font(Typeface.scaled(11, weight: .semibold))
                             Text(String(localized: "Publicar en la comunidad"))
                             Spacer(minLength: 0)
                             Text(String(localized: "+\(PointsEvent.recipePublished.amount) pts"))
@@ -642,6 +647,7 @@ struct RecipeDetailView: View {
                         .font(Typeface.micro)
                         .fontWeight(.semibold)
                         .foregroundStyle(Palette.plum)
+                        .hitTarget(horizontal: 4, vertical: 14)
                 }
             }
             .screenPadding()
@@ -684,7 +690,7 @@ struct RecipeDetailView: View {
                     } label: {
                         HStack(spacing: 7) {
                             Image(systemName: "square.and.pencil")
-                                .font(.system(size: 11, weight: .semibold))
+                                .font(Typeface.scaled(11, weight: .semibold))
                             Text(String(localized: "Escribir un comentario"))
                             Spacer(minLength: 0)
                             Text(String(localized: "+\(PointsEvent.reviewPosted.amount) pts"))
@@ -707,7 +713,7 @@ struct RecipeDetailView: View {
                 app.planToCook(recipe, on: Date())
             } label: {
                 Image(systemName: "calendar.badge.plus")
-                    .font(.system(size: 15, weight: .medium))
+                    .font(Typeface.scaled(15, weight: .medium))
                     .frame(width: 48, height: 48)
             }
             .buttonStyle(QuietButtonStyle())
@@ -719,7 +725,7 @@ struct RecipeDetailView: View {
             } label: {
                 HStack(spacing: 7) {
                     Image(systemName: "flame.fill")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(Typeface.scaled(13, weight: .semibold))
                     Text(String(localized: "Empezar a cocinar"))
                 }
             }

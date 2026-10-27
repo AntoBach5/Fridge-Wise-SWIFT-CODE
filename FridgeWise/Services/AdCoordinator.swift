@@ -159,7 +159,7 @@ struct NativeAdCard: View {
                         RoundedRectangle.soft(Radius.md)
                             .fill(Palette.turmeric.opacity(0.14))
                         Image(systemName: payload.imageSystemName)
-                            .font(.system(size: 20, weight: .light))
+                            .font(Typeface.scaled(20, weight: .light))
                             .foregroundStyle(Palette.turmeric)
                     }
                     .frame(width: 54, height: 54)

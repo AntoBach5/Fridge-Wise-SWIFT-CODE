@@ -73,7 +73,7 @@ struct ReportSheet: View {
                 ZStack {
                     Circle().fill(isSelected ? Palette.tomato.opacity(0.16) : Palette.canvasSunken)
                     Image(systemName: option.icon)
-                        .font(.system(size: 12, weight: .medium))
+                        .font(Typeface.scaled(12, weight: .medium))
                         .foregroundStyle(isSelected ? Palette.tomato : Palette.inkSoft)
                 }
                 .frame(width: 34, height: 34)
@@ -153,6 +153,7 @@ struct ReportSheet: View {
             .padding(Space.sm)
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(alsoBlock ? [.isSelected, .isToggle] : .isToggle)
         .transition(.opacity)
     }
 

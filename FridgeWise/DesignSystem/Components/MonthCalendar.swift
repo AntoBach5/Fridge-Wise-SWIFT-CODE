@@ -71,7 +71,7 @@ struct MonthCalendar: View {
             action()
         } label: {
             Image(systemName: icon)
-                .font(.system(size: 12, weight: .semibold))
+                .font(Typeface.scaled(12, weight: .semibold))
                 .foregroundStyle(Palette.inkSoft)
                 .frame(width: 34, height: 34)
                 .background { Circle().fill(Palette.surface) }
@@ -118,7 +118,7 @@ struct MonthCalendar: View {
         } label: {
             VStack(spacing: 3) {
                 Text("\(calendar.component(.day, from: day))")
-                    .font(.system(size: 15, weight: isSelected ? .semibold : .regular))
+                    .font(Typeface.scaled(15, weight: isSelected ? .semibold : .regular))
                     .monospacedDigit()
                     .foregroundStyle(dayColor(isSelected: isSelected, isDisabled: isDisabled))
 

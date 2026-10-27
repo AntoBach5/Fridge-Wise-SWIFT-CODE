@@ -72,7 +72,7 @@ struct CookModeView: View {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(Typeface.scaled(15, weight: .semibold))
                     .foregroundStyle(Palette.ink)
                     .frame(width: 44, height: 44)
                     .background { Circle().fill(Palette.surface) }
@@ -120,11 +120,11 @@ struct CookModeView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Space.lg) {
                 Text("\(step.order)")
-                    .font(.system(size: 64, weight: .regular, design: .serif))
+                    .font(Typeface.scaled(64, weight: .regular, design: .serif, relativeTo: .title1))
                     .foregroundStyle(recipe.accent.color.opacity(0.35))
 
                 Text(step.instruction)
-                    .font(.system(size: 25, weight: .regular, design: .serif))
+                    .font(Typeface.scaled(25, weight: .regular, design: .serif, relativeTo: .title1))
                     .foregroundStyle(Palette.ink)
                     .lineSpacing(7)
                     .fixedSize(horizontal: false, vertical: true)
@@ -135,7 +135,7 @@ struct CookModeView: View {
                             .fill(recipe.accent.color.opacity(0.45))
                             .frame(width: 2.5)
                         Text(tip)
-                            .font(.system(size: 17, weight: .regular, design: .serif))
+                            .font(Typeface.scaled(17, weight: .regular, design: .serif))
                             .italic()
                             .foregroundStyle(Palette.inkSoft)
                             .lineSpacing(4)
@@ -177,13 +177,13 @@ struct CookModeView: View {
         SoftCard(padding: Space.md, tint: recipe.accent.color) {
             HStack(spacing: Space.md) {
                 Image(systemName: "timer")
-                    .font(.system(size: 18, weight: .light))
+                    .font(Typeface.scaled(18, weight: .light))
                     .foregroundStyle(recipe.accent.color)
 
                 VStack(alignment: .leading, spacing: 1) {
                     if let secondsRemaining {
                         Text(format(secondsRemaining))
-                            .font(.system(size: 26, weight: .medium, design: .serif))
+                            .font(Typeface.scaled(26, weight: .medium, design: .serif, relativeTo: .title1))
                             .monospacedDigit()
                             .foregroundStyle(Palette.ink)
                             .contentTransition(.numericText(countsDown: true))
@@ -205,7 +205,7 @@ struct CookModeView: View {
                     toggleTimer(minutes: minutes)
                 } label: {
                     Image(systemName: secondsRemaining == nil ? "play.fill" : "stop.fill")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(Typeface.scaled(14, weight: .bold))
                         .foregroundStyle(Palette.onInk)
                         .frame(width: 46, height: 46)
                         .background { Circle().fill(recipe.accent.color) }
@@ -233,6 +233,7 @@ struct CookModeView: View {
                 }
                 if secondsRemaining == 0 {
                     Haptics.celebrate()
+                    AccessibilityNotification.Announcement(String(localized: "Temporizador terminado")).post()
                     secondsRemaining = nil
                 }
             }
@@ -251,7 +252,7 @@ struct CookModeView: View {
                     retreat()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(Typeface.scaled(16, weight: .semibold))
                         .frame(width: 56, height: 56)
                 }
                 .buttonStyle(QuietButtonStyle())
@@ -271,7 +272,7 @@ struct CookModeView: View {
                          ? String(localized: "Terminé")
                          : String(localized: "Siguiente paso"))
                     Image(systemName: isLastStep ? "checkmark" : "chevron.right")
-                        .font(.system(size: 13, weight: .bold))
+                        .font(Typeface.scaled(13, weight: .bold))
                 }
             }
             .buttonStyle(InkButtonStyle(
@@ -305,7 +306,7 @@ struct CookModeView: View {
             ZStack {
                 Circle().fill(Palette.basil.opacity(0.14))
                 Image(systemName: "checkmark")
-                    .font(.system(size: 30, weight: .medium))
+                    .font(Typeface.scaled(30, weight: .medium, relativeTo: .title1))
                     .foregroundStyle(Palette.basil)
                     .symbolEffect(.bounce)
             }

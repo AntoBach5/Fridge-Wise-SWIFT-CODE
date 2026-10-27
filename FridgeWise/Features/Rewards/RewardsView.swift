@@ -138,7 +138,7 @@ struct RewardsView: View {
                                     style: StrokeStyle(lineWidth: 3, lineCap: .round))
                             .rotationEffect(.degrees(-90))
                         Text("\(app.profile.level.rawValue + 1)")
-                            .font(.system(size: 19, weight: .medium, design: .serif))
+                            .font(Typeface.scaled(19, weight: .medium, design: .serif))
                             .foregroundStyle(app.profile.level.accent.color)
                     }
                     .frame(width: 54, height: 54)
@@ -207,6 +207,7 @@ struct RewardsView: View {
                         .font(Typeface.micro)
                         .fontWeight(.semibold)
                         .foregroundStyle(Palette.turmeric)
+                        .hitTarget(horizontal: 4, vertical: 14)
                 }
             }
             .screenPadding()
@@ -244,7 +245,7 @@ struct RewardsView: View {
                         ZStack {
                             Circle().fill(event.accent.color.opacity(0.14))
                             Image(systemName: event.icon)
-                                .font(.system(size: 12, weight: .medium))
+                                .font(Typeface.scaled(12, weight: .medium))
                                 .foregroundStyle(event.accent.color)
                         }
                         .frame(width: 32, height: 32)
@@ -350,7 +351,7 @@ struct RewardCard: View {
             ZStack {
                 Circle().fill(reward.accent.color.opacity(0.15))
                 Image(systemName: reward.icon)
-                    .font(.system(size: 16, weight: .light))
+                    .font(Typeface.scaled(16, weight: .light))
                     .foregroundStyle(reward.accent.color)
             }
             .frame(width: 40, height: 40)
@@ -378,7 +379,7 @@ struct RewardCard: View {
             } label: {
                 HStack(spacing: 5) {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(Typeface.scaled(10, weight: .semibold))
                     Text("\(reward.cost)")
                         .font(Typeface.action)
                         .monospacedDigit()

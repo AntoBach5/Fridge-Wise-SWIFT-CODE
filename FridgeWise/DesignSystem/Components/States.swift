@@ -57,7 +57,7 @@ struct ExpandableText: View {
                              ? String(localized: "Leer menos")
                              : String(localized: "Leer más"))
                         Image(systemName: "chevron.down")
-                            .font(.system(size: 8, weight: .bold))
+                            .font(Typeface.scaled(8, weight: .bold))
                             .rotationEffect(.degrees(isExpanded ? 180 : 0))
                     }
                     .font(Typeface.micro)
@@ -105,7 +105,7 @@ struct EmptyStateView: View {
                     }
 
                 Image(systemName: systemImage)
-                    .font(.system(size: 26, weight: .light))
+                    .font(Typeface.scaled(26, weight: .light, relativeTo: .title1))
                     .foregroundStyle(accent)
                     .symbolEffect(.pulse)
             }
@@ -231,7 +231,7 @@ struct ToastBanner: View {
             ZStack {
                 Circle().fill(accent.opacity(0.16))
                 Image(systemName: systemImage)
-                    .font(.system(size: 12, weight: .bold))
+                    .font(Typeface.scaled(12, weight: .bold))
                     .foregroundStyle(accent)
             }
             .frame(width: 28, height: 28)
@@ -277,6 +277,15 @@ struct ToastLayer: ViewModifier {
             }
         }
         .motion(Motion.entrance, value: toast)
+        // El aviso no recibe foco: VoiceOver lo lee en cuanto aparece.
+        .onChange(of: toast?.id) { _, _ in
+            if let toast { announce(toast) }
+        }
+    }
+
+    private func announce(_ toast: ToastPayload) {
+        let text = [toast.message, toast.detail].compactMap { $0 }.joined(separator: ". ")
+        AccessibilityNotification.Announcement(text).post()
     }
 }
 

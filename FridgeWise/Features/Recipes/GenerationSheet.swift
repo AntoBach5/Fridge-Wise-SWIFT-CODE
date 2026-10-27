@@ -96,7 +96,7 @@ struct GenerationSheet: View {
                 if !app.expiringSoon.isEmpty {
                     HStack(spacing: 6) {
                         Image(systemName: "clock.badge.exclamationmark")
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(Typeface.scaled(10, weight: .semibold))
                         Text(String(localized: "Vamos a priorizar lo que vence pronto"))
                             .font(Typeface.micro)
                             .fontWeight(.medium)
@@ -178,6 +178,7 @@ struct GenerationSheet: View {
                     Capsule().strokeBorder(isOn ? .clear : Palette.hairline,
                                            lineWidth: Stroke.hairline)
                 }
+                .hitTarget(vertical: 4)
         }
         .buttonStyle(.pressableCard)
         .accessibilityAddTraits(isOn ? [.isSelected, .isButton] : .isButton)
@@ -209,6 +210,7 @@ struct GenerationSheet: View {
                                 Capsule().strokeBorder(isOn ? .clear : Palette.hairline,
                                                        lineWidth: Stroke.hairline)
                             }
+                            .hitTarget(vertical: 4)
                     }
                     .buttonStyle(.plain)
                     .accessibilityAddTraits(isOn ? [.isSelected, .isButton] : .isButton)
@@ -226,7 +228,7 @@ struct GenerationSheet: View {
         VStack(alignment: .leading, spacing: 7) {
             HStack(spacing: Space.xs) {
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(Typeface.scaled(12, weight: .semibold))
                     .foregroundStyle(isTypingRequest ? Palette.plum : Palette.inkFaint)
 
                 TextField(
@@ -244,8 +246,9 @@ struct GenerationSheet: View {
                         withAnimation(Motion.tap) { preferences.customRequest = "" }
                     } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 14))
+                            .font(Typeface.scaled(14))
                             .foregroundStyle(Palette.inkFaint)
+                            .hitTarget(size: 18)
                     }
                     .buttonStyle(.plain)
                     .transition(.scale.combined(with: .opacity))
@@ -320,7 +323,7 @@ struct GenerationSheet: View {
 
                 RiveStage(controller: thinkingController) {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 34, weight: .ultraLight))
+                        .font(Typeface.scaled(34, weight: .ultraLight, relativeTo: .title1))
                         .foregroundStyle(Palette.ink)
                         .symbolEffect(.variableColor.iterative)
                 }
@@ -345,12 +348,16 @@ struct GenerationSheet: View {
 
             Spacer()
 
-            Button(String(localized: "Cancelar")) {
+            Button {
                 task?.cancel()
                 stage = .setup
+            } label: {
+                Text(String(localized: "Cancelar"))
+                    .font(Typeface.action)
+                    .foregroundStyle(Palette.inkSoft)
+                    .hitTarget(horizontal: 8, vertical: 12)
             }
-            .font(Typeface.action)
-            .foregroundStyle(Palette.inkSoft)
+            .buttonStyle(.plain)
             .padding(.bottom, Space.xl)
         }
         .screenPadding()
@@ -410,7 +417,7 @@ struct GenerationSheet: View {
     private var aiDisclaimer: some View {
         HStack(alignment: .top, spacing: Space.xs) {
             Image(systemName: "info.circle")
-                .font(.system(size: 11, weight: .semibold))
+                .font(Typeface.scaled(11, weight: .semibold))
                 .foregroundStyle(Palette.inkFaint)
                 .padding(.top, 1)
 

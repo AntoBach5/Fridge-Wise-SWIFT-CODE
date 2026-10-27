@@ -17,52 +17,83 @@ import SwiftUI
 
 enum Typeface {
 
+    // Dynamic Type (HIG · Typography): cada estilo parte de un text style del
+    // sistema, así crece y se reduce con el tamaño de texto que elige la persona.
+    // Los tamaños por defecto son los de siempre (±1 pt); lo que cambia es que
+    // ahora escalan. Los titulares con tamaño propio escalan con `scaled(_:)`.
+
     // MARK: - Serif editorial
 
     /// Titular hero de pantalla. Una sola vez por vista, arriba de todo.
-    static func display(_ size: CGFloat = 34) -> Font {
-        .system(size: size, weight: .regular, design: .serif)
+    @MainActor static func display(_ size: CGFloat = 34) -> Font {
+        scaled(size, weight: .regular, design: .serif, relativeTo: .largeTitle)
     }
 
     /// Titular hero en cursiva — reservado para la palabra enfatizada bajo el squiggle.
-    static func displayItalic(_ size: CGFloat = 34) -> Font {
-        .system(size: size, weight: .regular, design: .serif).italic()
+    @MainActor static func displayItalic(_ size: CGFloat = 34) -> Font {
+        display(size).italic()
     }
 
     /// Título de sección grande ("Recetas para hoy").
-    static let title = Font.system(size: 26, weight: .regular, design: .serif)
+    @MainActor static var title: Font { scaled(26, weight: .regular, design: .serif, relativeTo: .title1) }
 
     /// Título de tarjeta / receta.
-    static let cardTitle = Font.system(size: 19, weight: .medium, design: .serif)
+    static let cardTitle = Font.system(.title3, design: .serif, weight: .medium)
 
     /// Cita o texto reflexivo dentro de una tarjeta.
-    static let quote = Font.system(size: 17, weight: .regular, design: .serif)
+    static let quote = Font.system(.body, design: .serif, weight: .regular)
 
     // MARK: - Sans UI
 
     /// Label en versalitas con tracking abierto. La firma tipográfica del sistema.
     /// Se usa SIEMPRE junto con `.eyebrow()` para heredar color y `textCase`.
-    static let eyebrow = Font.system(size: 11, weight: .semibold, design: .default)
+    static let eyebrow = Font.system(.caption2, design: .default, weight: .semibold)
 
-    static let headline = Font.system(size: 16, weight: .semibold)
-    static let body = Font.system(size: 15.5, weight: .regular)
-    static let callout = Font.system(size: 14, weight: .regular)
-    static let caption = Font.system(size: 12.5, weight: .medium)
-    static let micro = Font.system(size: 11, weight: .medium)
+    static let headline = Font.system(.callout, weight: .semibold)
+    static let body = Font.system(.subheadline, weight: .regular)
+    static let callout = Font.system(.footnote, weight: .regular)
+    static let caption = Font.system(.caption, weight: .medium)
+    static let micro = Font.system(.caption2, weight: .medium)
 
     /// Botones y chips.
-    static let action = Font.system(size: 14.5, weight: .semibold)
+    static let action = Font.system(.subheadline, weight: .semibold)
 
     // MARK: - Datos
 
     /// Cifra grande (puntos, calorías, racha). Dígitos de ancho fijo para que
     /// no "salte" cuando anima con `.contentTransition(.numericText())`.
-    static func stat(_ size: CGFloat = 30) -> Font {
-        .system(size: size, weight: .semibold).monospacedDigit()
+    @MainActor static func stat(_ size: CGFloat = 30) -> Font {
+        scaled(size, weight: .semibold, relativeTo: .title1).monospacedDigit()
     }
 
-    static let statSmall = Font.system(size: 15, weight: .semibold).monospacedDigit()
-    static let percentage = Font.system(size: 12.5, weight: .semibold).monospacedDigit()
+    static let statSmall = Font.system(.subheadline, weight: .semibold).monospacedDigit()
+    static let percentage = Font.system(.caption, weight: .semibold).monospacedDigit()
+
+    // MARK: - Tamaño propio con Dynamic Type
+
+    /// Fuente del sistema a un tamaño concreto que escala con Dynamic Type
+    /// igual que `textStyle`. Para titulares e iconos con tamaño de diseño propio.
+    @MainActor static func scaled(
+        _ size: CGFloat,
+        weight: Font.Weight = .regular,
+        design: Font.Design = .default,
+        relativeTo textStyle: UIFont.TextStyle = .body
+    ) -> Font {
+        .system(size: scaledValue(size, relativeTo: textStyle), weight: weight, design: design)
+    }
+
+    /// Mismo tope que aplica `RootView` con `.dynamicTypeSize`: los layouts de
+    /// tamaño fijo (orbes, tarjetas de canje) no están pensados para los
+    /// tamaños de accesibilidad todavía.
+    static let maximumContentSize: UIContentSizeCategory = .extraExtraExtraLarge
+
+    @MainActor static func scaledValue(_ value: CGFloat, relativeTo textStyle: UIFont.TextStyle = .body) -> CGFloat {
+        var category = UIApplication.shared.preferredContentSizeCategory
+        if category == .unspecified { category = .large }
+        if category > maximumContentSize { category = maximumContentSize }
+        let traits = UITraitCollection(preferredContentSizeCategory: category)
+        return UIFontMetrics(forTextStyle: textStyle).scaledValue(for: value, compatibleWith: traits)
+    }
 }
 
 // MARK: - Modificadores de texto

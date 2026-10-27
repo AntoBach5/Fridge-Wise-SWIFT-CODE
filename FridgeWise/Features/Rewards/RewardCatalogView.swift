@@ -41,13 +41,13 @@ struct RewardCatalogView: View {
         .canvasBackground()
         .navigationTitle(String(localized: "Canjear puntos"))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Palette.canvas, for: .navigationBar)
+        .legacyNavigationBarBackground(Palette.canvas)
     }
 
     private var balanceStrip: some View {
         HStack(spacing: Space.sm) {
             Image(systemName: "sparkles")
-                .font(.system(size: 14, weight: .medium))
+                .font(Typeface.scaled(14, weight: .medium))
                 .foregroundStyle(Palette.turmeric)
 
             RollingNumber(value: app.ledger.balance, font: Typeface.stat(24))
@@ -63,6 +63,7 @@ struct RewardCatalogView: View {
                     .font(Typeface.micro)
                     .fontWeight(.semibold)
                     .foregroundStyle(Palette.turmeric)
+                    .hitTarget(horizontal: 4, vertical: 14)
             }
         }
         .padding(Space.md)
@@ -115,7 +116,7 @@ struct RewardCatalogView: View {
                 ZStack {
                     Circle().fill(reward.accent.color.opacity(canAfford ? 0.16 : 0.07))
                     Image(systemName: reward.icon)
-                        .font(.system(size: 15, weight: .light))
+                        .font(Typeface.scaled(15, weight: .light))
                         .foregroundStyle(reward.accent.color.opacity(canAfford ? 1 : 0.5))
                 }
                 .frame(width: 42, height: 42)
@@ -149,7 +150,7 @@ struct RewardCatalogView: View {
                             .font(Typeface.statSmall)
                             .monospacedDigit()
                         Text(String(localized: "pts"))
-                            .font(.system(size: 9, weight: .semibold))
+                            .font(Typeface.scaled(9, weight: .semibold))
                     }
                     .frame(width: 58, height: 44)
                 }

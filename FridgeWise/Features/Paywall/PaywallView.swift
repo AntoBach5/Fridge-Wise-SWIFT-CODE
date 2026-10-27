@@ -82,7 +82,7 @@ struct PaywallView: View {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Typeface.scaled(13, weight: .semibold))
                     .foregroundStyle(Palette.inkSoft)
                     .frame(width: 34, height: 34)
                     .background { Circle().fill(Palette.surface) }
@@ -297,7 +297,7 @@ struct PaywallView: View {
             .opacity(selected == nil ? 0.5 : 1)
 
             HStack(spacing: Space.md) {
-                Button(String(localized: "Restaurar compras")) {
+                Button {
                     Task {
                         do {
                             try await app.store.restorePurchases()
@@ -306,9 +306,15 @@ struct PaywallView: View {
                             errorMessage = error.localizedDescription
                         }
                     }
+                } label: {
+                    Text(String(localized: "Restaurar compras")).hitTarget(vertical: 14)
                 }
-                Link(String(localized: "Términos de uso"), destination: SupportContact.eulaURL)
-                Link(String(localized: "Privacidad"), destination: SupportContact.privacyURL)
+                Link(destination: SupportContact.eulaURL) {
+                    Text(String(localized: "Términos de uso")).hitTarget(vertical: 14)
+                }
+                Link(destination: SupportContact.privacyURL) {
+                    Text(String(localized: "Privacidad")).hitTarget(vertical: 14)
+                }
             }
             .font(Typeface.micro)
             .fontWeight(.semibold)
@@ -345,7 +351,7 @@ struct PaywallView: View {
                 app.profile.plan = .premium
                 Haptics.celebrate()
                 app.showToast(ToastPayload(
-                    message: String(localized: "Bienvenido a Premium"),
+                    message: String(localized: "Ya tienes Premium"),
                     detail: String(localized: "Sin límites, sin anuncios."),
                     systemImage: "crown.fill", accent: .turmeric
                 ))

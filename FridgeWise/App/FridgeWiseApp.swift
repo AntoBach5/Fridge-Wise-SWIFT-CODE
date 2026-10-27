@@ -18,6 +18,9 @@ struct FridgeWiseApp: App {
                 // La app tiene identidad propia en claro y oscuro; no forzamos
                 // un esquema. Forzar `.dark` es una señal clásica de app apurada.
                 .tint(Palette.ink)
+                // Dynamic Type hasta el mayor tamaño estándar. Los tamaños de
+                // accesibilidad necesitan rehacer layouts de medida fija.
+                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
                 .task { await app.onLaunch() }
         }
         .onChange(of: scenePhase) { _, phase in

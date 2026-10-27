@@ -116,7 +116,7 @@ struct ScanReviewSheet: View {
                 ZStack {
                     Circle().fill(Palette.turmeric.opacity(0.16))
                     Image(systemName: item.category.icon)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Typeface.scaled(13, weight: .medium))
                         .foregroundStyle(Palette.turmeric)
                 }
                 .frame(width: 36, height: 36)
@@ -138,9 +138,10 @@ struct ScanReviewSheet: View {
                         withAnimation(Motion.standard) { rejected.insert(item.id) }
                     } label: {
                         Image(systemName: "xmark")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(Typeface.scaled(12, weight: .bold))
                             .foregroundStyle(Palette.inkSoft)
                             .frame(width: 32, height: 32)
+                            .hitTarget(size: 32)
                             .background { Circle().fill(Palette.canvasSunken) }
                     }
                     .accessibilityLabel(String(localized: "Quitar \(item.name)"))
@@ -150,9 +151,10 @@ struct ScanReviewSheet: View {
                         withAnimation(Motion.standard) { confirm(item) }
                     } label: {
                         Image(systemName: "checkmark")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(Typeface.scaled(12, weight: .bold))
                             .foregroundStyle(Palette.onInk)
                             .frame(width: 32, height: 32)
+                            .hitTarget(size: 32)
                             .background { Circle().fill(Palette.basil) }
                     }
                     .accessibilityLabel(String(localized: "Confirmar \(item.name)"))
@@ -210,8 +212,9 @@ struct ScanReviewSheet: View {
                 withAnimation(Motion.standard) { rejected.insert(item.id) }
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 9, weight: .bold))
+                    .font(Typeface.scaled(9, weight: .bold))
                     .foregroundStyle(Palette.inkFaint)
+                    .hitTarget(horizontal: 12, vertical: 16)
             }
             .accessibilityLabel(String(localized: "Quitar \(item.name)"))
         }
@@ -246,7 +249,7 @@ struct ScanReviewSheet: View {
                     addManualIngredient()
                 } label: {
                     Image(systemName: "plus")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(Typeface.scaled(15, weight: .semibold))
                         .foregroundStyle(Palette.onInk)
                         .frame(width: 44, height: 44)
                         .background { Circle().fill(Palette.inkSolid) }
@@ -283,12 +286,16 @@ struct ScanReviewSheet: View {
             .disabled(kept.isEmpty)
             .opacity(kept.isEmpty ? 0.5 : 1)
 
-            Button(String(localized: "Sacar otra foto")) {
+            Button {
                 Haptics.select()
                 onRetake()
+            } label: {
+                Text(String(localized: "Sacar otra foto"))
+                    .font(Typeface.action)
+                    .foregroundStyle(Palette.inkSoft)
+                    .hitTarget(horizontal: 8, vertical: 12)
             }
-            .font(Typeface.action)
-            .foregroundStyle(Palette.inkSoft)
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, Space.screen)
         .padding(.top, Space.sm)

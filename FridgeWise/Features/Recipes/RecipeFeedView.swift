@@ -145,7 +145,7 @@ struct RecipeFeedView: View {
                 ZStack {
                     Circle().fill(Palette.plum.opacity(0.15))
                     Image(systemName: "sparkles")
-                        .font(.system(size: 17, weight: .light))
+                        .font(Typeface.scaled(17, weight: .light))
                         .foregroundStyle(Palette.plum)
                 }
                 .frame(width: 46, height: 46)
@@ -162,7 +162,7 @@ struct RecipeFeedView: View {
                 Spacer(minLength: 0)
 
                 Image(systemName: "arrow.right")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Typeface.scaled(13, weight: .semibold))
                     .foregroundStyle(Palette.plum)
             }
             .padding(Space.md)
@@ -200,7 +200,7 @@ struct RecipeFeedView: View {
         } label: {
             HStack(spacing: Space.sm) {
                 Image(systemName: "square.and.pencil")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(Typeface.scaled(13, weight: .medium))
                     .foregroundStyle(Palette.mist)
 
                 VStack(alignment: .leading, spacing: 1) {
@@ -215,7 +215,7 @@ struct RecipeFeedView: View {
                 Spacer(minLength: 0)
 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Typeface.scaled(11, weight: .semibold))
                     .foregroundStyle(Palette.inkFaint)
             }
             .padding(.horizontal, Space.md)

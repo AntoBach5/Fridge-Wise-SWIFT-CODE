@@ -42,7 +42,7 @@ struct ReviewRow: View {
             if let variation = review.variationNote {
                 HStack(spacing: 5) {
                     Image(systemName: "arrow.triangle.branch")
-                        .font(.system(size: 9, weight: .semibold))
+                        .font(Typeface.scaled(9, weight: .semibold))
                     Text(variation)
                         .font(Typeface.micro)
                         .italic()
@@ -96,7 +96,7 @@ struct ReviewRow: View {
 
                     if review.author.isVerifiedCook {
                         Image(systemName: "checkmark.seal.fill")
-                            .font(.system(size: 9))
+                            .font(Typeface.scaled(9))
                             .foregroundStyle(Palette.basil)
                             .accessibilityLabel(String(localized: "Cocinero verificado"))
                     }
@@ -118,10 +118,10 @@ struct ReviewRow: View {
                     moderationActions
                 } label: {
                     Image(systemName: "ellipsis")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(Typeface.scaled(13, weight: .semibold))
                         .foregroundStyle(Palette.inkFaint)
                         .frame(width: 30, height: 30)
-                        .contentShape(Rectangle())
+                        .hitTarget(size: 30)
                 }
                 .accessibilityLabel(String(localized: "Opciones del comentario"))
             }
@@ -135,7 +135,7 @@ struct ReviewRow: View {
             } label: {
                 HStack(spacing: 5) {
                     Image(systemName: review.didMarkHelpful ? "hand.thumbsup.fill" : "hand.thumbsup")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(Typeface.scaled(11, weight: .medium))
                     Text(String(localized: "Útil"))
                         .font(Typeface.micro)
                         .fontWeight(.semibold)
@@ -146,6 +146,7 @@ struct ReviewRow: View {
                     }
                 }
                 .foregroundStyle(review.didMarkHelpful ? Palette.basil : Palette.inkSoft)
+                .hitTarget(horizontal: 6, vertical: 14)
             }
             .buttonStyle(.plain)
             .disabled(review.didMarkHelpful)
@@ -158,7 +159,7 @@ struct ReviewRow: View {
     private var moderationNotice: some View {
         HStack(spacing: 6) {
             Image(systemName: "clock")
-                .font(.system(size: 9, weight: .semibold))
+                .font(Typeface.scaled(9, weight: .semibold))
             Text(String(localized: "En revisión. Solo lo ves tú por ahora."))
                 .font(Typeface.micro)
                 .fontWeight(.medium)
@@ -271,7 +272,7 @@ struct CommunityThreadView: View {
         .canvasBackground()
         .navigationTitle(String(localized: "Comentarios"))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Palette.canvas, for: .navigationBar)
+        .legacyNavigationBarBackground(Palette.canvas)
         .safeAreaInset(edge: .bottom) {
             Button {
                 Haptics.select()
@@ -320,7 +321,7 @@ struct CommunityThreadView: View {
                     ForEach([5, 4, 3, 2, 1], id: \.self) { stars in
                         HStack(spacing: 6) {
                             Text("\(stars)")
-                                .font(.system(size: 10, weight: .semibold))
+                                .font(Typeface.scaled(10, weight: .semibold))
                                 .monospacedDigit()
                                 .foregroundStyle(Palette.inkFaint)
                                 .frame(width: 8)
@@ -356,9 +357,12 @@ struct CommunityThreadView: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             HStack(spacing: Space.md) {
-                Link(String(localized: "Ver normas"), destination: SupportContact.guidelinesURL)
-                Link(String(localized: "Contactar moderación"),
-                     destination: URL(string: "mailto:\(SupportContact.moderationEmail)")!)
+                Link(destination: SupportContact.guidelinesURL) {
+                    Text(String(localized: "Ver normas")).hitTarget(vertical: 14)
+                }
+                Link(destination: URL(string: "mailto:\(SupportContact.moderationEmail)")!) {
+                    Text(String(localized: "Contactar moderación")).hitTarget(vertical: 14)
+                }
             }
             .font(Typeface.micro)
             .fontWeight(.semibold)

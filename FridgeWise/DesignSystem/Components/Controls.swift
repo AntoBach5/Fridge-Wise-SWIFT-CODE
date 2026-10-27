@@ -55,7 +55,7 @@ struct MorphingSegments<Item: Hashable>: View {
 
                 if let count = badge(item), count > 0 {
                     Text("\(count)")
-                        .font(.system(size: 10.5, weight: .bold))
+                        .font(Typeface.scaled(10.5, weight: .bold))
                         .monospacedDigit()
                         .foregroundStyle(isSelected ? Palette.inkSolid : Palette.onInk)
                         .padding(.horizontal, 5)
@@ -124,12 +124,12 @@ struct WeekStrip: View {
         } label: {
             VStack(spacing: 7) {
                 Text(day.date.formatted(.dateTime.weekday(.narrow)).uppercased())
-                    .font(.system(size: 9.5, weight: .semibold))
+                    .font(Typeface.scaled(9.5, weight: .semibold))
                     .tracking(0.6)
                     .foregroundStyle(isSelected ? Palette.onInk.opacity(0.65) : Palette.inkFaint)
 
                 Text(day.date.formatted(.dateTime.day()))
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(Typeface.scaled(14, weight: .semibold))
                     .monospacedDigit()
                     .foregroundStyle(
                         isSelected ? Palette.onInk

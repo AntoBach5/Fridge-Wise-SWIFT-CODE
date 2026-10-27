@@ -106,7 +106,7 @@ struct IconButton: View {
             action()
         } label: {
             Image(systemName: systemImage)
-                .font(.system(size: 14.5, weight: .medium))
+                .font(Typeface.scaled(14.5, weight: .medium))
                 .foregroundStyle(accent)
                 .frame(width: 34, height: 34)
                 .background {
@@ -127,6 +127,28 @@ struct IconButton: View {
                 .onEnded { _ in pressed = false }
         )
         .accessibilityLabel(accessibilityLabel)
+    }
+}
+
+// MARK: - Área táctil mínima
+
+extension View {
+    /// Amplía la zona que recibe el toque sin mover nada del layout: el padding
+    /// positivo crea el área, el negativo devuelve el tamaño original.
+    /// HIG · Accessibility: objetivos táctiles de al menos 44 × 44 pt.
+    func hitTarget(horizontal: CGFloat = 0, vertical: CGFloat = 0) -> some View {
+        self
+            .padding(.horizontal, horizontal)
+            .padding(.vertical, vertical)
+            .contentShape(Rectangle())
+            .padding(.horizontal, -horizontal)
+            .padding(.vertical, -vertical)
+    }
+
+    /// Atajo para glifos circulares: lleva un control de `size` pt a 44 pt.
+    func hitTarget(size: CGFloat) -> some View {
+        let inset = max(0, (44 - size) / 2)
+        return hitTarget(horizontal: inset, vertical: inset)
     }
 }
 

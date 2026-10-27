@@ -60,10 +60,14 @@ struct LimitReachedSheet: View {
                 }
                 .buttonStyle(InkButtonStyle(fill: Palette.turmeric, fullWidth: true))
 
-                Button(resetLabel) { dismiss() }
-                    .font(Typeface.action)
-                    .foregroundStyle(Palette.inkSoft)
-                    .padding(.top, Space.xxs)
+                Button { dismiss() } label: {
+                    Text(resetLabel)
+                        .font(Typeface.action)
+                        .foregroundStyle(Palette.inkSoft)
+                        .hitTarget(horizontal: 8, vertical: 12)
+                }
+                .buttonStyle(.plain)
+                .padding(.top, Space.xxs)
             }
 
             Spacer(minLength: 0)
@@ -82,7 +86,7 @@ struct LimitReachedSheet: View {
                     FluidBackdrop(palette: .reward, intensity: 0.32).clipShape(Circle())
                 }
             Image(systemName: prompt.resource.icon)
-                .font(.system(size: 24, weight: .light))
+                .font(Typeface.scaled(24, weight: .light, relativeTo: .title1))
                 .foregroundStyle(Palette.turmeric)
         }
         .frame(width: 82, height: 82)
@@ -142,7 +146,7 @@ struct LimitReachedSheet: View {
         } label: {
             HStack(spacing: Space.sm) {
                 Image(systemName: "sparkles")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(Typeface.scaled(13, weight: .medium))
                     .foregroundStyle(Palette.basil)
 
                 VStack(alignment: .leading, spacing: 1) {
@@ -159,7 +163,7 @@ struct LimitReachedSheet: View {
                 Spacer(minLength: 0)
 
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Typeface.scaled(11, weight: .semibold))
                     .foregroundStyle(Palette.inkFaint)
             }
             .padding(Space.md)

@@ -88,7 +88,7 @@ struct CookPlanEditorSheet: View {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Typeface.scaled(13, weight: .semibold))
                     .foregroundStyle(Palette.inkSoft)
                     .frame(width: 34, height: 34)
                     .liquidGlass(in: Circle(), role: .control, interactive: true, shadow: false)
@@ -180,7 +180,7 @@ struct CookPlanEditorSheet: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityAddTraits(wantsReminder ? [.isSelected, .isButton] : .isButton)
+        .accessibilityAddTraits(wantsReminder ? [.isSelected, .isButton, .isToggle] : [.isButton, .isToggle])
     }
 
     private var timePicker: some View {
@@ -219,7 +219,7 @@ struct CookPlanEditorSheet: View {
                     .font(Typeface.micro)
                     .fontWeight(.semibold)
                 Text(String(format: "%02d:%02d", suggestion.hour, suggestion.minute))
-                    .font(.system(size: 10.5, weight: .medium))
+                    .font(Typeface.scaled(10.5, weight: .medium))
                     .monospacedDigit()
                     .opacity(0.75)
             }
@@ -229,7 +229,7 @@ struct CookPlanEditorSheet: View {
             .modifier(SuggestionGlass(isOn: isOn))
         }
         .buttonStyle(.pressableCard)
-        .accessibilityLabel(String(localized: "\(suggestion.label), \(suggestion.hour) y \(suggestion.minute)"))
+        .accessibilityLabel("\(suggestion.label), \(String(format: "%02d:%02d", suggestion.hour, suggestion.minute))")
         .accessibilityAddTraits(isOn ? [.isSelected, .isButton] : .isButton)
     }
 
@@ -268,11 +268,12 @@ struct CookPlanEditorSheet: View {
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "calendar.badge.minus")
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(Typeface.scaled(11, weight: .semibold))
                     Text(String(localized: "Quitar del calendario"))
                 }
                 .font(Typeface.action)
                 .foregroundStyle(Palette.tomato)
+                .hitTarget(horizontal: 8, vertical: 12)
             }
             .buttonStyle(.plain)
         }

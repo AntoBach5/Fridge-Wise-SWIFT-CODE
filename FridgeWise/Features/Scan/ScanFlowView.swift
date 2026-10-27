@@ -135,10 +135,11 @@ struct ScanFlowView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "xmark")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(Typeface.scaled(14, weight: .semibold))
                         .foregroundStyle(.white)
                         .frame(width: 36, height: 36)
                         .liquidGlass(in: Circle(), role: .overlay, interactive: true, shadow: false)
+                        .hitTarget(size: 36)
                 }
                 .accessibilityLabel(String(localized: "Cerrar"))
 
@@ -159,7 +160,7 @@ struct ScanFlowView: View {
         let left = app.remaining(.scan)
         return HStack(spacing: 5) {
             Image(systemName: "viewfinder")
-                .font(.system(size: 10, weight: .semibold))
+                .font(Typeface.scaled(10, weight: .semibold))
             Text(left == .max
                  ? String(localized: "Sin límite")
                  : String(localized: "\(left) esta semana"))
@@ -181,7 +182,7 @@ struct ScanFlowView: View {
             ZStack {
                 Circle().fill(.white.opacity(0.08))
                 Image(systemName: camera.access == .denied ? "camera.badge.ellipsis" : "camera")
-                    .font(.system(size: 30, weight: .light))
+                    .font(Typeface.scaled(30, weight: .light, relativeTo: .title1))
                     .foregroundStyle(.white)
             }
             .frame(width: 96, height: 96)
@@ -223,11 +224,15 @@ struct ScanFlowView: View {
                 }
 
                 // Salida alternativa: nunca dejamos al usuario en una pantalla muerta.
-                Button(String(localized: "Cargar ingredientes a mano")) {
+                Button {
                     dismiss()
+                } label: {
+                    Text(String(localized: "Cargar ingredientes a mano"))
+                        .font(Typeface.action)
+                        .foregroundStyle(.white.opacity(0.75))
+                        .hitTarget(horizontal: 8, vertical: 12)
                 }
-                .font(Typeface.action)
-                .foregroundStyle(.white.opacity(0.75))
+                .buttonStyle(.plain)
                 .padding(.top, Space.xxs)
             }
             .padding(.horizontal, Space.xl)
@@ -324,7 +329,7 @@ struct ScanFlowView: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: option.icon)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Typeface.scaled(11, weight: .semibold))
                 Text(option.title)
                     .font(Typeface.action)
             }
@@ -350,7 +355,7 @@ struct ScanFlowView: View {
     private var lowLightHint: some View {
         HStack(spacing: 7) {
             Image(systemName: "bolt.fill")
-                .font(.system(size: 11, weight: .semibold))
+                .font(Typeface.scaled(11, weight: .semibold))
             Text(String(localized: "Hay poca luz. Vamos a usar el flash."))
                 .font(Typeface.micro)
                 .fontWeight(.medium)
@@ -381,7 +386,9 @@ struct ScanFlowView: View {
             .motion(Motion.tap, value: camera.isCapturing)
         }
         .disabled(camera.isCapturing)
-        .accessibilityLabel(String(localized: "Sacar foto de la nevera"))
+        .accessibilityLabel(subject == .receipt
+            ? String(localized: "Sacar foto del ticket")
+            : String(localized: "Sacar foto de la nevera"))
     }
 
     // MARK: - Análisis
@@ -434,7 +441,7 @@ struct ScanFlowView: View {
         VStack(spacing: Space.md) {
             HStack(spacing: Space.xs) {
                 Image(systemName: "sparkles")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(Typeface.scaled(12, weight: .semibold))
                     .foregroundStyle(Palette.turmeric)
                     .symbolEffect(.variableColor.iterative, isActive: stage == .analyzing)
 
@@ -589,12 +596,12 @@ private struct DetectionPin: View {
                 .frame(width: 6, height: 6)
 
             Text(ingredient.name)
-                .font(.system(size: 11.5, weight: .semibold))
+                .font(Typeface.scaled(11.5, weight: .semibold))
                 .foregroundStyle(.white)
 
             if ingredient.needsReview {
                 Image(systemName: "questionmark")
-                    .font(.system(size: 8, weight: .bold))
+                    .font(Typeface.scaled(8, weight: .bold))
                     .foregroundStyle(Palette.turmeric)
             }
         }

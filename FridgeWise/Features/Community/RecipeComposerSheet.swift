@@ -128,7 +128,7 @@ struct RecipeComposerSheet: View {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Typeface.scaled(13, weight: .semibold))
                     .foregroundStyle(Palette.inkSoft)
                     .frame(width: 34, height: 34)
                     .background { Circle().fill(Palette.surface) }
@@ -175,7 +175,7 @@ struct RecipeComposerSheet: View {
             VStack(alignment: .leading, spacing: Space.sm) {
                 HStack(spacing: 7) {
                     Image(systemName: icon)
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(Typeface.scaled(12, weight: .semibold))
                         .foregroundStyle(accent)
                     Text(title)
                         .font(Typeface.headline)
@@ -244,6 +244,7 @@ struct RecipeComposerSheet: View {
                                     Capsule().strokeBorder(isOn ? .clear : Palette.hairline,
                                                            lineWidth: Stroke.hairline)
                                 }
+                                .hitTarget(vertical: 4)
                         }
                         .buttonStyle(.pressableCard)
                         .accessibilityAddTraits(isOn ? [.isSelected, .isButton] : .isButton)
@@ -314,7 +315,7 @@ struct RecipeComposerSheet: View {
                 ForEach(Array(draft.steps.enumerated()), id: \.element.id) { index, step in
                     HStack(alignment: .top, spacing: Space.sm) {
                         Text("\(index + 1)")
-                            .font(.system(size: 17, weight: .regular, design: .serif))
+                            .font(Typeface.scaled(17, weight: .regular, design: .serif))
                             .foregroundStyle(Palette.mist)
                             .frame(width: 20, alignment: .leading)
                             .padding(.top, 12)
@@ -376,6 +377,7 @@ struct RecipeComposerSheet: View {
                                 Capsule().strokeBorder(isOn ? .clear : Palette.hairline,
                                                        lineWidth: Stroke.hairline)
                             }
+                            .hitTarget(vertical: 4)
                     }
                     .buttonStyle(.plain)
                     .accessibilityAddTraits(isOn ? [.isSelected, .isButton] : .isButton)
@@ -405,7 +407,7 @@ struct RecipeComposerSheet: View {
     private var disclaimer: some View {
         HStack(alignment: .top, spacing: Space.xs) {
             Image(systemName: "info.circle")
-                .font(.system(size: 11, weight: .semibold))
+                .font(Typeface.scaled(11, weight: .semibold))
                 .foregroundStyle(Palette.inkFaint)
                 .padding(.top, 1)
 
@@ -434,20 +436,24 @@ struct RecipeComposerSheet: View {
                 } label: {
                     HStack(spacing: 7) {
                         Image(systemName: "paperplane.fill")
-                            .font(.system(size: 12, weight: .semibold))
+                            .font(Typeface.scaled(12, weight: .semibold))
                         Text(String(localized: "Publicar en la comunidad"))
                     }
                 }
                 .buttonStyle(InkButtonStyle(fullWidth: true))
 
-                Button(String(localized: "Seguir editando")) {
+                Button {
                     withAnimation(Motion.standard) {
                         stage = .writing
                         verdict = nil
                     }
+                } label: {
+                    Text(String(localized: "Seguir editando"))
+                        .font(Typeface.action)
+                        .foregroundStyle(Palette.inkSoft)
+                        .hitTarget(horizontal: 8, vertical: 12)
                 }
-                .font(Typeface.action)
-                .foregroundStyle(Palette.inkSoft)
+                .buttonStyle(.plain)
             } else {
                 Button {
                     review()
@@ -460,7 +466,7 @@ struct RecipeComposerSheet: View {
                     } else {
                         HStack(spacing: 7) {
                             Image(systemName: "sparkle.magnifyingglass")
-                                .font(.system(size: 12, weight: .semibold))
+                                .font(Typeface.scaled(12, weight: .semibold))
                             Text(String(localized: "Revisar antes de publicar"))
                         }
                     }
@@ -566,6 +572,21 @@ struct RecipeComposerSheet: View {
             .padding(.vertical, 4)
             .background { Capsule().fill(Palette.surface) }
             .overlay { Capsule().strokeBorder(Palette.hairline, lineWidth: Stroke.hairline) }
+            // Para VoiceOver es un solo control ajustable, como un `Stepper`
+            // del sistema: se desliza arriba o abajo para cambiar el valor.
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(label)
+            .accessibilityValue("\(value.wrappedValue)")
+            .accessibilityAdjustableAction { direction in
+                switch direction {
+                case .increment:
+                    value.wrappedValue = min(range.upperBound, value.wrappedValue + step)
+                case .decrement:
+                    value.wrappedValue = max(range.lowerBound, value.wrappedValue - step)
+                @unknown default:
+                    break
+                }
+            }
         }
         .frame(maxWidth: .infinity)
     }
@@ -576,10 +597,10 @@ struct RecipeComposerSheet: View {
             withAnimation(Motion.tap) { action() }
         } label: {
             Image(systemName: icon)
-                .font(.system(size: 11, weight: .bold))
+                .font(Typeface.scaled(11, weight: .bold))
                 .foregroundStyle(Palette.inkSoft)
                 .frame(width: 38, height: 34)
-                .contentShape(Rectangle())
+                .hitTarget(horizontal: 3, vertical: 5)
         }
         .buttonStyle(.plain)
     }
@@ -590,9 +611,10 @@ struct RecipeComposerSheet: View {
             action()
         } label: {
             Image(systemName: "minus.circle")
-                .font(.system(size: 15, weight: .medium))
+                .font(Typeface.scaled(15, weight: .medium))
                 .foregroundStyle(disabled ? Palette.hairline : Palette.inkFaint)
                 .frame(width: 30, height: 30)
+                .hitTarget(size: 30)
         }
         .buttonStyle(.plain)
         .disabled(disabled)
@@ -606,14 +628,14 @@ struct RecipeComposerSheet: View {
         } label: {
             HStack(spacing: 6) {
                 Image(systemName: "plus")
-                    .font(.system(size: 10, weight: .bold))
+                    .font(Typeface.scaled(10, weight: .bold))
                 Text(title)
                     .font(Typeface.micro)
                     .fontWeight(.semibold)
             }
             .foregroundStyle(Palette.mist)
             .padding(.vertical, 6)
-            .contentShape(Rectangle())
+            .hitTarget(vertical: 8)
         }
         .buttonStyle(.plain)
     }

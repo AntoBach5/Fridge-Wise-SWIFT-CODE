@@ -91,7 +91,7 @@ struct KitchenView: View {
 
                 NavigationLink(value: Route.settings) {
                     Image(systemName: "slider.horizontal.3")
-                        .font(.system(size: 14.5, weight: .medium))
+                        .font(Typeface.scaled(14.5, weight: .medium))
                         .foregroundStyle(Palette.ink)
                         .frame(width: 34, height: 34)
                         .background { Circle().fill(Palette.surface) }
@@ -107,9 +107,9 @@ struct KitchenView: View {
     private var streakBadge: some View {
         HStack(spacing: 4) {
             Image(systemName: "flame.fill")
-                .font(.system(size: 10, weight: .semibold))
+                .font(Typeface.scaled(10, weight: .semibold))
             Text("\(app.profile.streak.currentDays)")
-                .font(.system(size: 12, weight: .semibold))
+                .font(Typeface.scaled(12, weight: .semibold))
                 .monospacedDigit()
                 .contentTransition(.numericText(value: Double(app.profile.streak.currentDays)))
         }
@@ -228,7 +228,7 @@ struct KitchenView: View {
                         .strokeBorder(Palette.inkFaint.opacity(0.35),
                                       style: StrokeStyle(lineWidth: 1.2, dash: [3, 3]))
                     Image(systemName: "plus")
-                        .font(.system(size: 15, weight: .medium))
+                        .font(Typeface.scaled(15, weight: .medium))
                         .foregroundStyle(Palette.inkSoft)
                 }
                 .frame(width: 52, height: 52)
@@ -250,7 +250,7 @@ struct KitchenView: View {
                     .fill(category.accent.color.opacity(0.85))
 
                 Text("\(count)")
-                    .font(.system(size: 17, weight: .medium, design: .serif))
+                    .font(Typeface.scaled(17, weight: .medium, design: .serif))
                     .foregroundStyle(Palette.onInk)
                     .contentTransition(.numericText(value: Double(count)))
             }
@@ -286,14 +286,14 @@ struct KitchenView: View {
                              ? String(localized: "Ver semana")
                              : String(localized: "Ver mes"))
                         Image(systemName: "chevron.down")
-                            .font(.system(size: 8, weight: .bold))
+                            .font(Typeface.scaled(8, weight: .bold))
                             .rotationEffect(.degrees(isCalendarExpanded ? 180 : 0))
                     }
                     .font(Typeface.micro)
                     .fontWeight(.semibold)
                     .foregroundStyle(Palette.basil)
                     .padding(.vertical, 4)
-                    .contentShape(Rectangle())
+                    .hitTarget(horizontal: 4, vertical: 10)
                 }
                 .buttonStyle(.plain)
             }
@@ -357,14 +357,14 @@ struct KitchenView: View {
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "calendar.badge.plus")
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(Typeface.scaled(11, weight: .semibold))
                     Text(String(localized: "Agendar una receta"))
                         .font(Typeface.micro)
                         .fontWeight(.semibold)
                 }
                 .foregroundStyle(Palette.basil)
                 .padding(.vertical, 6)
-                .contentShape(Rectangle())
+                .hitTarget(vertical: 8)
             }
             .buttonStyle(.plain)
         }
@@ -396,12 +396,12 @@ struct KitchenView: View {
                 HStack(spacing: 4) {
                     if let remindsAt = plan.remindsAt {
                         Image(systemName: "bell")
-                            .font(.system(size: 8, weight: .semibold))
+                            .font(Typeface.scaled(8, weight: .semibold))
                         Text(remindsAt.formatted(.dateTime.hour().minute()))
                             .font(Typeface.micro)
                     } else {
                         Image(systemName: "bell.slash")
-                            .font(.system(size: 8, weight: .semibold))
+                            .font(Typeface.scaled(8, weight: .semibold))
                         Text(String(localized: "Sin aviso"))
                             .font(Typeface.micro)
                     }
@@ -412,7 +412,7 @@ struct KitchenView: View {
             Spacer(minLength: Space.xs)
 
             Image(systemName: "slider.horizontal.3")
-                .font(.system(size: 11, weight: .semibold))
+                .font(Typeface.scaled(11, weight: .semibold))
                 .foregroundStyle(Palette.inkFaint)
                 .frame(width: 30, height: 30)
         }
@@ -457,7 +457,7 @@ struct KitchenView: View {
             VStack(alignment: .leading, spacing: Space.sm) {
                 HStack(spacing: 6) {
                     Image(systemName: insight.icon)
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(Typeface.scaled(10, weight: .semibold))
                         .foregroundStyle(insight.accent.color)
                     Text(String(localized: "Observación")).eyebrow(insight.accent.color)
 
@@ -471,7 +471,7 @@ struct KitchenView: View {
                     } label: {
                         HStack(spacing: 4) {
                             Image(systemName: "plus")
-                                .font(.system(size: 9, weight: .bold))
+                                .font(Typeface.scaled(9, weight: .bold))
                             Text(String(localized: "Producto"))
                                 .font(Typeface.micro)
                                 .fontWeight(.semibold)
@@ -480,7 +480,7 @@ struct KitchenView: View {
                         .padding(.horizontal, 9)
                         .padding(.vertical, 5)
                         .background { Capsule().fill(insight.accent.color.opacity(0.12)) }
-                        .contentShape(Capsule())
+                        .hitTarget(vertical: 10)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(String(localized: "Añadir un producto a la despensa"))
@@ -552,7 +552,7 @@ struct KitchenView: View {
 
                 VStack(alignment: .leading, spacing: Space.xs) {
                     Image(systemName: "viewfinder")
-                        .font(.system(size: 22, weight: .light))
+                        .font(Typeface.scaled(22, weight: .light))
                         .foregroundStyle(Palette.ink)
                         .padding(.bottom, Space.xxs)
 
@@ -594,7 +594,7 @@ struct KitchenView: View {
                         editingIngredient = .new
                     } label: {
                         Image(systemName: "plus")
-                            .font(.system(size: 11, weight: .bold))
+                            .font(Typeface.scaled(11, weight: .bold))
                             .foregroundStyle(Palette.tomato)
                             .frame(width: 26, height: 26)
                             .background { Circle().fill(Palette.tomato.opacity(0.12)) }
@@ -661,7 +661,7 @@ struct KitchenView: View {
                 .foregroundStyle(item.freshness.accent.color)
 
             Image(systemName: "chevron.right")
-                .font(.system(size: 10, weight: .semibold))
+                .font(Typeface.scaled(10, weight: .semibold))
                 .foregroundStyle(Palette.inkFaint)
         }
         .padding(.horizontal, Space.md)
@@ -726,12 +726,16 @@ struct KitchenView: View {
                 HStack {
                     Text(String(localized: "Plan gratuito · esta semana")).eyebrow(Palette.turmeric)
                     Spacer()
-                    Button(String(localized: "Ver Premium")) {
+                    Button {
                         app.isPresentingPaywall = true
+                    } label: {
+                        Text(String(localized: "Ver Premium"))
+                            .font(Typeface.micro)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Palette.turmeric)
+                            .hitTarget(horizontal: 4, vertical: 14)
                     }
-                    .font(Typeface.micro)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(Palette.turmeric)
+                    .buttonStyle(.plain)
                 }
 
                 ForEach([MeteredResource.scan, .aiGeneration], id: \.self) { resource in

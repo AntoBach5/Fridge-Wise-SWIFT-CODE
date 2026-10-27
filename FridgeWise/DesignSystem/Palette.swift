@@ -31,7 +31,8 @@ enum Palette {
     static let surfaceRaised = adaptive(light: 0xFFFFFF, dark: 0x282821)
 
     /// Hairline de 0.75pt que define las tarjetas. Hace el 80% del refinamiento.
-    static let hairline = adaptive(light: 0xE4DED0, dark: 0x33332B)
+    static let hairline = adaptive(light: 0xE4DED0, dark: 0x33332B,
+                                   highContrastLight: 0xB9B2A2, highContrastDark: 0x5A5A4F)
 
     // MARK: - Tinta (texto y superficies oscuras)
 
@@ -39,10 +40,14 @@ enum Palette {
     static let ink = adaptive(light: 0x23282B, dark: 0xF2EFE5)
 
     /// Texto secundario / subtítulos.
-    static let inkSoft = adaptive(light: 0x5E6560, dark: 0xA8A498)
+    static let inkSoft = adaptive(light: 0x5E6560, dark: 0xA8A498,
+                                  highContrastLight: 0x434944, highContrastDark: 0xC9C5B8)
 
     /// Labels en versalitas, metadatos, placeholders.
-    static let inkFaint = adaptive(light: 0x8E948C, dark: 0x77746A)
+    /// Ajustado para llegar a 4,5:1 sobre el lienzo en claro y en oscuro
+    /// (HIG · Accessibility: contraste mínimo del texto).
+    static let inkFaint = adaptive(light: 0x697068, dark: 0x8F8C81,
+                                   highContrastLight: 0x4F554E, highContrastDark: 0xB3B0A4)
 
     /// Superficie oscura constante (tab bar, botones primarios) — NO invierte en dark mode.
     /// Mantenerla fija es lo que preserva la identidad de la marca entre modos.
@@ -54,25 +59,32 @@ enum Palette {
     // MARK: - Acentos de produce
 
     /// Tomate / pimiento. Alerta suave, ingredientes por vencer, dificultad alta.
-    static let tomato = adaptive(light: 0xC2685B, dark: 0xD97D6E)
+    static let tomato = adaptive(light: 0xC2685B, dark: 0xD97D6E,
+                                 highContrastLight: 0xA34B3D)
 
     /// Arcilla / cebolla morada. Categoría proteínas.
-    static let clay = adaptive(light: 0xB78A72, dark: 0xC79A81)
+    static let clay = adaptive(light: 0xB78A72, dark: 0xC79A81,
+                               highContrastLight: 0x8C624C)
 
     /// Salvia. Verduras, frescura, estados "ok".
-    static let sage = adaptive(light: 0x8BA482, dark: 0x9BB491)
+    static let sage = adaptive(light: 0x8BA482, dark: 0x9BB491,
+                               highContrastLight: 0x5D7656)
 
     /// Albahaca. Salud nutricional positiva, confirmaciones.
-    static let basil = adaptive(light: 0x6C8F67, dark: 0x86A87F)
+    static let basil = adaptive(light: 0x6C8F67, dark: 0x86A87F,
+                                highContrastLight: 0x557A50)
 
     /// Cúrcuma. Puntos, recompensas, gamificación, premium.
-    static let turmeric = adaptive(light: 0xD8A34C, dark: 0xE0B061)
+    static let turmeric = adaptive(light: 0xD8A34C, dark: 0xE0B061,
+                                   highContrastLight: 0x8F6516)
 
     /// Ciruela. IA / generación, comunidad.
-    static let plum = adaptive(light: 0x93849F, dark: 0xA898B4)
+    static let plum = adaptive(light: 0x93849F, dark: 0xA898B4,
+                               highContrastLight: 0x6F6080)
 
     /// Niebla. Lácteos, congelados, estados fríos.
-    static let mist = adaptive(light: 0x94A3C4, dark: 0xA3B1D0)
+    static let mist = adaptive(light: 0x94A3C4, dark: 0xA3B1D0,
+                               highContrastLight: 0x5B6A8C)
 
     // MARK: - Semántica
 
@@ -103,11 +115,25 @@ enum Palette {
         }
     }
 
-    private static func adaptive(light: UInt32, dark: UInt32) -> Color {
+    /// Color con variantes claro/oscuro y, opcionalmente, una variante para
+    /// "Aumentar contraste" (HIG · Color: cada color propio necesita versión
+    /// de alto contraste). Sin variante explícita, se usa la normal.
+    private static func adaptive(
+        light: UInt32,
+        dark: UInt32,
+        highContrastLight: UInt32? = nil,
+        highContrastDark: UInt32? = nil
+    ) -> Color {
         Color(UIColor { traits in
-            traits.userInterfaceStyle == .dark
-                ? UIColor(rgbHex: dark)
-                : UIColor(rgbHex: light)
+            let isDark = traits.userInterfaceStyle == .dark
+            let isHighContrast = traits.accessibilityContrast == .high
+            let hex = switch (isDark, isHighContrast) {
+            case (false, false): light
+            case (true, false):  dark
+            case (false, true):  highContrastLight ?? light
+            case (true, true):   highContrastDark ?? dark
+            }
+            return UIColor(rgbHex: hex)
         })
     }
 }

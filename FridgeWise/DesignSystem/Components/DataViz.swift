@@ -66,7 +66,8 @@ struct DistributionRow: View {
 /// Se usa en puntos, calorías, racha y precio.
 struct RollingNumber: View {
     let value: Int
-    var font: Font = Typeface.stat()
+    /// `nil` → `Typeface.stat()`, que escala con Dynamic Type al dibujarse.
+    var font: Font? = nil
     var color: Color = Palette.ink
     var prefix: String = ""
     var suffix: String = ""
@@ -77,7 +78,7 @@ struct RollingNumber: View {
                 Text(prefix).font(Typeface.statSmall).foregroundStyle(color.opacity(0.6))
             }
             Text("\(value)")
-                .font(font)
+                .font(font ?? Typeface.stat())
                 .foregroundStyle(color)
                 .contentTransition(.numericText(value: Double(value)))
             if !suffix.isEmpty {
@@ -102,7 +103,7 @@ struct MetricStat: View {
             HStack(spacing: 5) {
                 if let systemImage {
                     Image(systemName: systemImage)
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(Typeface.scaled(11, weight: .semibold))
                         .foregroundStyle(accent)
                 }
                 Text(value)
@@ -212,6 +213,7 @@ struct SparklineChart: View {
     var trailingLabel: String = ""
 
     @State private var progress: CGFloat = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(spacing: Space.xs) {
@@ -249,8 +251,18 @@ struct SparklineChart: View {
                 Text(trailingLabel).eyebrow()
             }
         }
+        // VoiceOver no lee la curva: se describe en texto (HIG · Charts).
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(String(localized: "Actividad de \(leadingLabel) a \(trailingLabel)"))
+        .accessibilityValue(values
+            .map { "\(Int(($0.clamped(to: 0...1) * 100).rounded())) %" }
+            .joined(separator: ", "))
         .task {
-            withAnimation(.easeOut(duration: 0.9)) { progress = 1 }
+            if reduceMotion {
+                progress = 1
+            } else {
+                withAnimation(.easeOut(duration: 0.9)) { progress = 1 }
+            }
         }
     }
 }

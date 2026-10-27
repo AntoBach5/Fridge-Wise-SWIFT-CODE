@@ -98,9 +98,10 @@ struct ReviewComposerSheet: View {
                         withAnimation(Motion.tap) { rating = value }
                     } label: {
                         Image(systemName: value <= rating ? "star.fill" : "star")
-                            .font(.system(size: 24, weight: .light))
+                            .font(Typeface.scaled(24, weight: .light, relativeTo: .title1))
                             .foregroundStyle(value <= rating ? Palette.turmeric : Palette.hairline)
                             .scaleEffect(value == rating ? 1.12 : 1)
+                            .hitTarget(horizontal: 4, vertical: 10)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(String(localized: "\(value) estrellas"))
@@ -194,7 +195,7 @@ struct ReviewComposerSheet: View {
     private func advisoryBanner(_ message: String) -> some View {
         HStack(alignment: .top, spacing: Space.xs) {
             Image(systemName: isBlocked ? "xmark.octagon" : "exclamationmark.triangle")
-                .font(.system(size: 11, weight: .semibold))
+                .font(Typeface.scaled(11, weight: .semibold))
                 .foregroundStyle(isBlocked ? Palette.tomato : Palette.turmeric)
                 .padding(.top, 1)
 
@@ -302,14 +303,22 @@ struct CommunityAgreementSheet: View {
                 Button(String(localized: "Acepto las normas")) { onAccept() }
                     .buttonStyle(InkButtonStyle(fullWidth: true))
 
-                Button(String(localized: "Ahora no")) { onDecline() }
-                    .font(Typeface.action)
-                    .foregroundStyle(Palette.inkSoft)
+                Button { onDecline() } label: {
+                    Text(String(localized: "Ahora no"))
+                        .font(Typeface.action)
+                        .foregroundStyle(Palette.inkSoft)
+                        .hitTarget(horizontal: 8, vertical: 12)
+                }
+                .buttonStyle(.plain)
 
                 HStack(spacing: Space.sm) {
-                    Link(String(localized: "Normas completas"), destination: SupportContact.guidelinesURL)
+                    Link(destination: SupportContact.guidelinesURL) {
+                        Text(String(localized: "Normas completas")).hitTarget(vertical: 14)
+                    }
                     Text("·").foregroundStyle(Palette.inkFaint)
-                    Link(String(localized: "Términos"), destination: SupportContact.termsURL)
+                    Link(destination: SupportContact.termsURL) {
+                        Text(String(localized: "Términos")).hitTarget(vertical: 14)
+                    }
                 }
                 .font(Typeface.micro)
                 .foregroundStyle(Palette.inkFaint)
@@ -327,7 +336,7 @@ struct CommunityAgreementSheet: View {
             ZStack {
                 Circle().fill(Palette.plum.opacity(0.13))
                 Image(systemName: icon)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(Typeface.scaled(12, weight: .medium))
                     .foregroundStyle(Palette.plum)
             }
             .frame(width: 32, height: 32)

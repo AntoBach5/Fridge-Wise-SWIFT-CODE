@@ -48,6 +48,13 @@ struct RecipeCard: View {
         .frame(width: style == .rail ? 248 : nil)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityDescription)
+        // Al combinar la tarjeta, el botón de guardar deja de ser alcanzable
+        // con VoiceOver: se ofrece como acción de la tarjeta.
+        .accessibilityAction(named: Text(app.isSaved(recipe)
+            ? String(localized: "Quitar de guardadas")
+            : String(localized: "Guardar receta"))) {
+            app.toggleSave(recipe)
+        }
     }
 
     // MARK: - Arte
@@ -72,12 +79,13 @@ struct RecipeCard: View {
             app.toggleSave(recipe)
         } label: {
             Image(systemName: app.isSaved(recipe) ? "bookmark.fill" : "bookmark")
-                .font(.system(size: 12, weight: .semibold))
+                .font(Typeface.scaled(12, weight: .semibold))
                 .foregroundStyle(app.isSaved(recipe) ? Palette.clay : Palette.inkSoft)
                 .frame(width: 30, height: 30)
                 .background { Circle().fill(Palette.surface.opacity(0.92)) }
                 .overlay { Circle().strokeBorder(Palette.hairline, lineWidth: Stroke.hairline) }
                 .symbolEffect(.bounce, value: app.isSaved(recipe))
+                .hitTarget(size: 30)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(app.isSaved(recipe)
@@ -162,7 +170,7 @@ struct RecipeCard: View {
                     .frame(width: 16, height: 16)
                     .overlay {
                         Text(recipe.grade.letter)
-                            .font(.system(size: 9, weight: .bold, design: .serif))
+                            .font(Typeface.scaled(9, weight: .bold, design: .serif))
                             .foregroundStyle(.white)
                     }
             }
@@ -172,7 +180,7 @@ struct RecipeCard: View {
     private func metric(_ icon: String, _ value: String) -> some View {
         HStack(spacing: 4) {
             Image(systemName: icon)
-                .font(.system(size: 10, weight: .medium))
+                .font(Typeface.scaled(10, weight: .medium))
                 .foregroundStyle(Palette.inkFaint)
             Text(value)
                 .font(Typeface.micro)
@@ -245,7 +253,7 @@ struct RecipeRow: View {
 
             if let accessory {
                 Image(systemName: accessory)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Typeface.scaled(14, weight: .medium))
                     .foregroundStyle(accessoryTint)
             }
         }

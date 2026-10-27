@@ -269,6 +269,22 @@ extension View {
     }
 }
 
+// MARK: - Barra de navegación
+
+extension View {
+    /// Fondo de papel para la barra de navegación solo antes de iOS 26.
+    /// En iOS 26 la barra es Liquid Glass y se separa del contenido con el
+    /// scroll edge effect; un fondo opaco propio lo anula (HIG · Toolbars).
+    @ViewBuilder
+    func legacyNavigationBarBackground(_ color: Color) -> some View {
+        if LiquidGlass.isSupported {
+            self
+        } else {
+            self.toolbarBackground(color, for: .navigationBar)
+        }
+    }
+}
+
 // MARK: - Contenedor
 
 /// Agrupa cristales hermanos para que se fundan y se separen al moverse.
