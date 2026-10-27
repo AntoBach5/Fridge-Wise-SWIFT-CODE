@@ -81,7 +81,7 @@ struct RecipeComposerSheet: View {
                 },
                 onDecline: { showsAgreement = false }
             )
-            .presentationDetents([.height(520)])
+            .presentationDetents([.height(520), .large])
             .presentationCornerRadius(Radius.sheet)
             .presentationBackground(Palette.canvas)
             .interactiveDismissDisabled()
@@ -369,7 +369,7 @@ struct RecipeComposerSheet: View {
                         Text(tag.title)
                             .font(Typeface.micro)
                             .fontWeight(.semibold)
-                            .foregroundStyle(isOn ? Palette.onInk : Palette.inkSoft)
+                            .foregroundStyle(isOn ? Palette.onAccent : Palette.inkSoft)
                             .padding(.horizontal, 13)
                             .padding(.vertical, 8.5)
                             .background { Capsule().fill(isOn ? tag.accent.color : Palette.surface) }

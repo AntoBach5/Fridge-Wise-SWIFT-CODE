@@ -56,35 +56,40 @@ enum Palette {
     /// Texto sobre `inkSolid`.
     static let onInk = adaptive(light: 0xF6F3EA, dark: 0xF2EFE5)
 
+    /// Texto e iconos sobre un relleno de acento (tomate, albahaca, cúrcuma…).
+    /// En claro los acentos son oscuros y llevan texto crema; en oscuro son
+    /// claros y necesitan tinta oscura (≥ 4,5:1 en los siete).
+    static let onAccent = adaptive(light: 0xF6F3EA, dark: 0x14140F)
+
     // MARK: - Acentos de produce
 
     /// Tomate / pimiento. Alerta suave, ingredientes por vencer, dificultad alta.
-    static let tomato = adaptive(light: 0xC2685B, dark: 0xD97D6E,
-                                 highContrastLight: 0xA34B3D)
+    static let tomato = adaptive(light: 0xA84C3F, dark: 0xD97D6E,
+                                 highContrastLight: 0x77352C)
 
     /// Arcilla / cebolla morada. Categoría proteínas.
-    static let clay = adaptive(light: 0xB78A72, dark: 0xC79A81,
-                               highContrastLight: 0x8C624C)
+    static let clay = adaptive(light: 0x8B5E47, dark: 0xC79A81,
+                               highContrastLight: 0x614232)
 
     /// Salvia. Verduras, frescura, estados "ok".
-    static let sage = adaptive(light: 0x8BA482, dark: 0x9BB491,
-                               highContrastLight: 0x5D7656)
+    static let sage = adaptive(light: 0x586F50, dark: 0x9BB491,
+                               highContrastLight: 0x3E4D38)
 
     /// Albahaca. Salud nutricional positiva, confirmaciones.
-    static let basil = adaptive(light: 0x6C8F67, dark: 0x86A87F,
-                                highContrastLight: 0x557A50)
+    static let basil = adaptive(light: 0x547050, dark: 0x86A87F,
+                                highContrastLight: 0x3B4E38)
 
     /// Cúrcuma. Puntos, recompensas, gamificación, premium.
-    static let turmeric = adaptive(light: 0xD8A34C, dark: 0xE0B061,
-                                   highContrastLight: 0x8F6516)
+    static let turmeric = adaptive(light: 0x8A611E, dark: 0xE0B061,
+                                   highContrastLight: 0x614415)
 
     /// Ciruela. IA / generación, comunidad.
-    static let plum = adaptive(light: 0x93849F, dark: 0xA898B4,
-                               highContrastLight: 0x6F6080)
+    static let plum = adaptive(light: 0x72637F, dark: 0xA898B4,
+                               highContrastLight: 0x504559)
 
     /// Niebla. Lácteos, congelados, estados fríos.
-    static let mist = adaptive(light: 0x94A3C4, dark: 0xA3B1D0,
-                               highContrastLight: 0x5B6A8C)
+    static let mist = adaptive(light: 0x536897, dark: 0xA3B1D0,
+                               highContrastLight: 0x3A496A)
 
     // MARK: - Semántica
 

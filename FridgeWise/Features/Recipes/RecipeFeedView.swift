@@ -99,7 +99,7 @@ struct RecipeFeedView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(String(localized: "Qué puedes")).displayStyle(31)
-            HStack(spacing: 9) {
+            FlowLayout(spacing: 9) {
                 Text(String(localized: "cocinar"))
                     .font(Typeface.displayItalic(31))
                     .foregroundStyle(Palette.ink)

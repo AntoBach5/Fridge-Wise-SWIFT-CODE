@@ -31,8 +31,8 @@ struct RootView: View {
                 .ignoresSafeArea(.keyboard, edges: .bottom)
 
             // La pill solo vive en la raíz de cada sección. En cualquier pantalla
-            // empujada se retira: esas pantallas traen su propia barra de acciones
-            // y su propio botón de volver, y dos barras apiladas se pisan.
+            // empujada se retira: esas pantallas traen la barra de navegación del
+            // sistema con su botón de volver, y dos barras apiladas se pisan.
             PillTabBar(selection: $selection, isDimmed: isTabBarDimmed) {
                 app.isPresentingScanner = true
             }
@@ -63,7 +63,7 @@ struct RootView: View {
             set: { app.limitPrompt = $0 }
         )) { prompt in
             LimitReachedSheet(prompt: prompt)
-                .presentationDetents([.height(430)])
+                .presentationDetents([.height(430), .large])
                 .presentationCornerRadius(Radius.sheet)
                 .presentationBackground(Palette.canvas)
                 .presentationDragIndicator(.visible)

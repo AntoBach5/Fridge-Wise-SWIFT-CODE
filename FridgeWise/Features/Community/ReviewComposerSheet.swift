@@ -68,7 +68,7 @@ struct ReviewComposerSheet: View {
                     dismiss()
                 }
             )
-            .presentationDetents([.height(520)])
+            .presentationDetents([.height(520), .large])
             .presentationCornerRadius(Radius.sheet)
             .presentationBackground(Palette.canvas)
             .interactiveDismissDisabled()
@@ -276,6 +276,13 @@ struct CommunityAgreementSheet: View {
     var onDecline: () -> Void
 
     var body: some View {
+        ScrollView { content }
+            .scrollBounceBehavior(.basedOnSize)
+            .scrollIndicators(.hidden)
+            .canvasBackground()
+    }
+
+    private var content: some View {
         VStack(alignment: .leading, spacing: Space.lg) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(String(localized: "Antes de")).displayStyle(26)
@@ -328,7 +335,6 @@ struct CommunityAgreementSheet: View {
         .padding(.top, Space.xl)
         .padding(.bottom, Space.md)
         .screenPadding()
-        .canvasBackground()
     }
 
     private func rule(_ icon: String, _ title: String, _ detail: String) -> some View {

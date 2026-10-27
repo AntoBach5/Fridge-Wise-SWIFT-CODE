@@ -9,8 +9,9 @@
 //  · Marcar algo en To Buy lo mete en la despensa automáticamente.
 //  · Planificar una receta en To Cook empuja sus faltantes a To Buy.
 //
-//  Cero `List` nativo: filas propias con swipe custom, para poder controlar
-//  el fondo, los separadores y la física del gesto.
+//  Es una `List` del sistema (insetGrouped) con el fondo y las filas
+//  teñidos con la paleta: el deslizar-para-borrar es `swipeActions`, con la
+//  física, la accesibilidad y el borrado completo que ya conoce la persona.
 //
 
 import SwiftUI
@@ -26,31 +27,34 @@ struct ListsView: View {
     @FocusState private var isComposing: Bool
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: Space.lg) {
-                header
-                segments
-                composer
+        List {
+            header
+                .freeFormListRow(horizontal: 2, top: Space.xs, bottom: Space.md)
+            segments
+                .freeFormListRow(horizontal: 2, bottom: Space.md)
+            composer
+                .freeFormListRow(horizontal: 2, bottom: Space.xs)
 
-                let groups = groupedItems
-                if groups.isEmpty {
-                    emptyState
-                } else {
-                    ForEach(groups, id: \.title) { group in
-                        section(group)
-                    }
+            let groups = groupedItems
+            if groups.isEmpty {
+                emptyState
+                    .freeFormListRow(horizontal: 2)
+            } else {
+                ForEach(groups, id: \.title) { group in
+                    section(group)
                 }
-
-                completedSection
             }
-            .padding(.top, Space.xs)
-            .padding(.bottom, Space.tabBarInset)
-            .readsScrollDirection(into: $isTabBarDimmed)
+
+            completedSection
         }
-        .coordinateSpace(name: "scroll")
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .listSectionSpacing(Space.md)
+        .contentMargins(.bottom, Space.tabBarInset, for: .scrollContent)
         .scrollIndicators(.hidden)
-        .editorialScrollFeel()
-        .dismissKeyboardOnDrag()
+        .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
+        .scrollDismissesKeyboard(.interactively)
+        .readsListScrollDirection(into: $isTabBarDimmed)
         .canvasBackground()
         .toolbar(.hidden, for: .navigationBar)
     }
@@ -102,7 +106,6 @@ struct ListsView: View {
             }
             .accessibilityLabel(String(localized: "Más opciones"))
         }
-        .screenPadding()
     }
 
     private var segments: some View {
@@ -112,7 +115,6 @@ struct ListsView: View {
             badge: { app.pendingCount(in: $0) },
             selection: $kind
         )
-        .screenPadding()
     }
 
     // MARK: - Composer
@@ -141,7 +143,7 @@ struct ListsView: View {
                 } label: {
                     Image(systemName: "arrow.up")
                         .font(Typeface.scaled(12, weight: .bold))
-                        .foregroundStyle(Palette.onInk)
+                        .foregroundStyle(Palette.onAccent)
                         .frame(width: 28, height: 28)
                         .background { Circle().fill(kind.accent.color) }
                         .hitTarget(size: 28)
@@ -163,7 +165,6 @@ struct ListsView: View {
         }
         .motion(Motion.standard, value: isComposing)
         .motion(Motion.tap, value: newItem.isEmpty)
-        .screenPadding()
     }
 
     private func addItem() {
@@ -188,7 +189,11 @@ struct ListsView: View {
     }
 
     private func section(_ group: (title: String, accent: AccentFamily, items: [ListItem])) -> some View {
-        VStack(alignment: .leading, spacing: Space.xs) {
+        Section {
+            ForEach(group.items, id: \.id) { item in
+                itemListRow(item)
+            }
+        } header: {
             HStack(spacing: 7) {
                 AccentDot(color: group.accent.color, size: 7)
                 Text(group.title).eyebrow()
@@ -198,28 +203,27 @@ struct ListsView: View {
                     .monospacedDigit()
                     .foregroundStyle(Palette.inkFaint)
             }
-            .screenPadding()
-
-            VStack(spacing: 0) {
-                ForEach(Array(group.items.enumerated()), id: \.element.id) { index, item in
-                    SwipeableRow(
-                        onDelete: { app.deleteItem(item) }
-                    ) {
-                        itemRow(item)
-                    }
-                    if index < group.items.count - 1 {
-                        Hairline(inset: 46)
-                    }
-                }
-            }
-            .background { RoundedRectangle.soft(Radius.card).fill(Palette.surface) }
-            .overlay {
-                RoundedRectangle.soft(Radius.card)
-                    .strokeBorder(Palette.hairline, lineWidth: Stroke.hairline)
-            }
-            .clipShape(RoundedRectangle.soft(Radius.card))
-            .screenPadding()
+            .textCase(nil)
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isHeader)
         }
+    }
+
+    /// Fila de la lista con las acciones de deslizar del sistema.
+    private func itemListRow(_ item: ListItem) -> some View {
+        itemRow(item)
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Palette.surface)
+            .listRowSeparatorTint(Palette.hairline)
+            .alignmentGuide(.listRowSeparatorLeading) { _ in 46 }
+            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                Button(role: .destructive) {
+                    app.deleteItem(item)
+                } label: {
+                    Label(String(localized: "Borrar"), systemImage: "trash")
+                }
+                .tint(Palette.tomato)
+            }
     }
 
     private func itemRow(_ item: ListItem) -> some View {
@@ -287,7 +291,13 @@ struct ListsView: View {
     @ViewBuilder
     private var completedSection: some View {
         if !completedItems.isEmpty {
-            VStack(alignment: .leading, spacing: Space.xs) {
+            Section {
+                if showsCompleted {
+                    ForEach(completedItems, id: \.id) { item in
+                        itemListRow(item)
+                    }
+                }
+            } header: {
                 Button {
                     Haptics.select()
                     withAnimation(Motion.standard) { showsCompleted.toggle() }
@@ -307,27 +317,10 @@ struct ListsView: View {
                     .hitTarget(vertical: 12)
                 }
                 .buttonStyle(.plain)
+                .textCase(nil)
                 .accessibilityValue(showsCompleted
                     ? String(localized: "Desplegado")
                     : String(localized: "Plegado"))
-                .screenPadding()
-
-                if showsCompleted {
-                    VStack(spacing: 0) {
-                        ForEach(Array(completedItems.enumerated()), id: \.element.id) { index, item in
-                            SwipeableRow(onDelete: { app.deleteItem(item) }) {
-                                itemRow(item)
-                            }
-                            if index < completedItems.count - 1 {
-                                Hairline(inset: 46)
-                            }
-                        }
-                    }
-                    .background { RoundedRectangle.soft(Radius.card).fill(Palette.surface.opacity(0.6)) }
-                    .clipShape(RoundedRectangle.soft(Radius.card))
-                    .screenPadding()
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                }
             }
         }
     }
@@ -345,104 +338,5 @@ struct ListsView: View {
             actionTitle: kind == .toCook ? String(localized: "Buscar recetas") : nil,
             action: kind == .toCook ? { isComposing = true } : nil
         )
-    }
-}
-
-// MARK: - Fila con swipe
-
-/// Swipe para borrar hecho a mano. Se resiste el arrastre pasado el umbral
-/// (`rubber banding`) y se completa solo si el gesto pasa la mitad del ancho —
-/// la misma física que usa Mail, sin el chrome de `List`.
-struct SwipeableRow<Content: View>: View {
-
-    var onDelete: () -> Void
-    @ViewBuilder var content: Content
-
-    @State private var offset: CGFloat = 0
-    @State private var isCommitting = false
-    @State private var axis: Axis = .undecided
-
-    private let actionWidth: CGFloat = 76
-
-    /// Una vez que el arrastre se decide por un eje, no cambia hasta soltar.
-    /// Sin esto, un scroll vertical con un poco de diagonal terminaba abriendo
-    /// filas a mitad de camino.
-    private enum Axis { case undecided, horizontal, vertical }
-
-    var body: some View {
-        ZStack(alignment: .trailing) {
-            // Acción revelada.
-            HStack {
-                Spacer()
-                Button {
-                    commit()
-                } label: {
-                    Image(systemName: "trash")
-                        .font(Typeface.scaled(15, weight: .medium))
-                        .foregroundStyle(Palette.onInk)
-                        .frame(width: actionWidth)
-                        .frame(maxHeight: .infinity)
-                        .background(Palette.tomato)
-                }
-                .accessibilityLabel(String(localized: "Borrar"))
-            }
-
-            content
-                .offset(x: offset)
-                .gesture(
-                    DragGesture(minimumDistance: 14)
-                        .onChanged { value in
-                            if axis == .undecided {
-                                let horizontal = abs(value.translation.width)
-                                let vertical = abs(value.translation.height)
-                                // Hasta que el gesto no tiene dirección clara no
-                                // se le asigna eje: decidir con 2 px es adivinar.
-                                guard horizontal + vertical > 8 else { return }
-                                axis = horizontal > vertical * 1.5 ? .horizontal : .vertical
-                            }
-                            guard axis == .horizontal else { return }
-
-                            guard value.translation.width < 0 else {
-                                offset = min(0, value.translation.width * 0.2)
-                                return
-                            }
-                            let raw = value.translation.width
-                            // Resistencia pasado el ancho de la acción.
-                            offset = raw < -actionWidth
-                                ? -actionWidth + (raw + actionWidth) * 0.28
-                                : raw
-                        }
-                        .onEnded { value in
-                            defer { axis = .undecided }
-                            guard axis == .horizontal else { return }
-
-                            let shouldDelete = value.translation.width < -actionWidth * 2.2
-                            if shouldDelete {
-                                commit()
-                            } else if value.translation.width < -actionWidth * 0.5 {
-                                Haptics.select()
-                                withAnimation(Motion.standard) { offset = -actionWidth }
-                            } else {
-                                withAnimation(Motion.standard) { offset = 0 }
-                            }
-                        }
-                )
-        }
-        .clipped()
-        .opacity(isCommitting ? 0 : 1)
-        // El swipe es invisible para VoiceOver: sin esta acción, borrar una fila
-        // era imposible con el lector encendido. Aparece en el rotor de acciones.
-        .accessibilityAction(named: Text(String(localized: "Borrar"))) { commit() }
-    }
-
-    private func commit() {
-        guard !isCommitting else { return }
-        isCommitting = true
-        Haptics.commit()
-        withAnimation(Motion.standard) { offset = -600 }
-        Task {
-            try? await Task.sleep(for: .milliseconds(180))
-            onDelete()
-        }
     }
 }

@@ -32,6 +32,14 @@ struct LimitReachedSheet: View {
     }
 
     var body: some View {
+        // Con texto grande el contenido no cabe en la altura fija: se desplaza.
+        ScrollView { content }
+            .scrollBounceBehavior(.basedOnSize)
+            .scrollIndicators(.hidden)
+            .canvasBackground()
+    }
+
+    private var content: some View {
         VStack(spacing: Space.lg) {
             icon
 
@@ -58,7 +66,7 @@ struct LimitReachedSheet: View {
                     dismiss()
                     app.isPresentingPaywall = true
                 }
-                .buttonStyle(InkButtonStyle(fill: Palette.turmeric, fullWidth: true))
+                .buttonStyle(InkButtonStyle(fill: Palette.turmeric, foreground: Palette.onAccent, fullWidth: true))
 
                 Button { dismiss() } label: {
                     Text(resetLabel)
@@ -75,7 +83,6 @@ struct LimitReachedSheet: View {
         .padding(.top, Space.xl)
         .padding(.bottom, Space.lg)
         .screenPadding()
-        .canvasBackground()
     }
 
     private var icon: some View {

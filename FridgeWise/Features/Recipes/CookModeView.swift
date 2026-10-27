@@ -56,8 +56,10 @@ struct CookModeView: View {
             timerTask?.cancel()
         }
         .sheet(isPresented: $showsFinish) {
-            finishSheet
-                .presentationDetents([.height(420)])
+            ScrollView { finishSheet }
+                .scrollBounceBehavior(.basedOnSize)
+                .scrollIndicators(.hidden)
+                .presentationDetents([.height(420), .large])
                 .presentationCornerRadius(Radius.sheet)
                 .presentationBackground(Palette.canvas)
         }
@@ -206,7 +208,7 @@ struct CookModeView: View {
                 } label: {
                     Image(systemName: secondsRemaining == nil ? "play.fill" : "stop.fill")
                         .font(Typeface.scaled(14, weight: .bold))
-                        .foregroundStyle(Palette.onInk)
+                        .foregroundStyle(Palette.onAccent)
                         .frame(width: 46, height: 46)
                         .background { Circle().fill(recipe.accent.color) }
                 }
@@ -277,6 +279,7 @@ struct CookModeView: View {
             }
             .buttonStyle(InkButtonStyle(
                 fill: isLastStep ? Palette.basil : Palette.inkSolid,
+                foreground: isLastStep ? Palette.onAccent : Palette.onInk,
                 verticalPadding: 18,
                 fullWidth: true
             ))
@@ -331,7 +334,7 @@ struct CookModeView: View {
                     showsFinish = false
                     dismiss()
                 }
-                .buttonStyle(InkButtonStyle(fill: Palette.basil, fullWidth: true))
+                .buttonStyle(InkButtonStyle(fill: Palette.basil, foreground: Palette.onAccent, fullWidth: true))
 
                 Button(String(localized: "Contar cómo salió")) {
                     app.markCooked(recipe)

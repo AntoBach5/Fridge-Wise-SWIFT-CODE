@@ -171,7 +171,7 @@ struct RecipeCard: View {
                     .overlay {
                         Text(recipe.grade.letter)
                             .font(Typeface.scaled(9, weight: .bold, design: .serif))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Palette.onAccent)
                     }
             }
         }

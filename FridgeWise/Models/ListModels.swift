@@ -2,7 +2,7 @@
 //  ListModels.swift
 //  FridgeWise
 //
-//  Sistema dual de listas: "To Buy" (compras) y "To Cook" (cocinar).
+//  Sistema dual de listas: "Por comprar" (compras) y "Por cocinar" (cocinar).
 //  La clave del diseño es que ambas comparten el mismo tipo de fila pero
 //  llevan cargas distintas, y las dos se alimentan desde el detalle de receta:
 //  · Falta un ingrediente → va a To Buy, con backlink a la receta.
@@ -18,8 +18,8 @@ enum ListKind: String, Codable, CaseIterable, Identifiable, Hashable, Sendable {
 
     var title: String {
         switch self {
-        case .toBuy:  String(localized: "To Buy")
-        case .toCook: String(localized: "To Cook")
+        case .toBuy:  String(localized: "Por comprar")
+        case .toCook: String(localized: "Por cocinar")
         }
     }
 

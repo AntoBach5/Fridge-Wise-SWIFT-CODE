@@ -82,17 +82,21 @@ enum Typeface {
         .system(size: scaledValue(size, relativeTo: textStyle), weight: weight, design: design)
     }
 
-    /// Mismo tope que aplica `RootView` con `.dynamicTypeSize`: los layouts de
-    /// tamaño fijo (orbes, tarjetas de canje) no están pensados para los
-    /// tamaños de accesibilidad todavía.
-    static let maximumContentSize: UIContentSizeCategory = .extraExtraExtraLarge
+    /// Mismo tope que aplica `FridgeWiseApp` con `.dynamicTypeSize`.
+    static let maximumContentSize: UIContentSizeCategory = .accessibilityExtraExtraLarge
+
+    /// Un tamaño propio (titular, glifo dentro de un círculo) no crece más de
+    /// 1,6 veces su valor de diseño: más allá desborda su contenedor. El texto
+    /// de lectura usa text styles y sí escala por completo.
+    static let maximumCustomScale: CGFloat = 1.6
 
     @MainActor static func scaledValue(_ value: CGFloat, relativeTo textStyle: UIFont.TextStyle = .body) -> CGFloat {
         var category = UIApplication.shared.preferredContentSizeCategory
         if category == .unspecified { category = .large }
         if category > maximumContentSize { category = maximumContentSize }
         let traits = UITraitCollection(preferredContentSizeCategory: category)
-        return UIFontMetrics(forTextStyle: textStyle).scaledValue(for: value, compatibleWith: traits)
+        let scaled = UIFontMetrics(forTextStyle: textStyle).scaledValue(for: value, compatibleWith: traits)
+        return min(scaled, value * maximumCustomScale)
     }
 }
 

@@ -38,6 +38,9 @@ struct MorphingSegments<Item: Hashable>: View {
             .padding(4)
             .glassCapsule(role: .control, shadow: false)
         }
+        // Control denso de ancho fijo: como el segmentado del sistema, se
+        // detiene en los tamaños de texto grandes en vez de los de accesibilidad.
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
     }
 
     private func segment(_ item: Item) -> some View {
@@ -112,6 +115,8 @@ struct WeekStrip: View {
                 }
             }
         }
+        // Siete columnas: no caben tamaños de accesibilidad.
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
     }
 
     private func dayCell(_ day: DayMarker) -> some View {
@@ -202,7 +207,7 @@ struct FilterRail<Item: Hashable>: View {
         } label: {
             Text(title(item))
                 .font(Typeface.action)
-                .foregroundStyle(isOn ? Palette.onInk : Palette.inkSoft)
+                .foregroundStyle(isOn ? Palette.onAccent : Palette.inkSoft)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8.5)
                 .modifier(ChipGlass(isOn: isOn, accent: accent(item)))

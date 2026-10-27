@@ -42,7 +42,29 @@ struct GenerationSheet: View {
             case .done:    resultsStage
             }
         }
+        .overlay(alignment: .topTrailing) {
+            // Mientras genera ya está "Cancelar"; en el resto, cerrar es siempre posible.
+            if stage != .working { closeButton }
+        }
         .onDisappear { task?.cancel() }
+    }
+
+    private var closeButton: some View {
+        Button {
+            Haptics.select()
+            dismiss()
+        } label: {
+            Image(systemName: "xmark")
+                .font(Typeface.scaled(13, weight: .semibold))
+                .foregroundStyle(Palette.inkSoft)
+                .frame(width: 34, height: 34)
+                .liquidGlass(in: Circle(), role: .control, interactive: true, shadow: false)
+                .frame(width: 44, height: 44)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(String(localized: "Cerrar"))
+        .padding(.horizontal, Space.sm)
+        .padding(.top, Space.xs)
     }
 
     // MARK: - Configuración
@@ -200,7 +222,7 @@ struct GenerationSheet: View {
                         Text(tag.title)
                             .font(Typeface.micro)
                             .fontWeight(.semibold)
-                            .foregroundStyle(isOn ? Palette.onInk : Palette.inkSoft)
+                            .foregroundStyle(isOn ? Palette.onAccent : Palette.inkSoft)
                             .padding(.horizontal, 13)
                             .padding(.vertical, 8.5)
                             .background {

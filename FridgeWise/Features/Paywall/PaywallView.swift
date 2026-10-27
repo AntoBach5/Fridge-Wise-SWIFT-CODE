@@ -27,6 +27,7 @@ struct PaywallView: View {
     @State private var selected: Product?
     @State private var isPurchasing = false
     @State private var errorMessage: String?
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         ZStack {
@@ -102,7 +103,7 @@ struct PaywallView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(String(localized: "Cocina sin")).displayStyle(33)
-                HStack(spacing: 9) {
+                FlowLayout(spacing: 9) {
                     Text(String(localized: "límites"))
                         .font(Typeface.displayItalic(33))
                         .foregroundStyle(Palette.ink)
@@ -150,20 +151,48 @@ struct PaywallView: View {
                 .strokeBorder(Palette.hairline, lineWidth: Stroke.hairline)
         }
         .overlay(alignment: .top) {
-            HStack {
-                Spacer()
-                Text(String(localized: "Gratis")).eyebrow()
-                    .frame(width: 62)
-                Text(String(localized: "Premium")).eyebrow(Palette.turmeric)
-                    .frame(width: 72)
+            // En tamaños de accesibilidad cada fila ya nombra las dos columnas.
+            if !typeSize.isAccessibilitySize {
+                HStack {
+                    Spacer()
+                    Text(String(localized: "Gratis")).eyebrow()
+                        .frame(width: 62)
+                    Text(String(localized: "Premium")).eyebrow(Palette.turmeric)
+                        .frame(width: 72)
+                }
+                .padding(.horizontal, Space.md)
+                .offset(y: -18)
+                .accessibilityHidden(true)
             }
-            .padding(.horizontal, Space.md)
-            .offset(y: -18)
         }
-        .padding(.top, Space.md)
+        .padding(.top, typeSize.isAccessibilitySize ? 0 : Space.md)
     }
 
+    @ViewBuilder
     private func comparisonRow(_ title: String, free: String, premium: String) -> some View {
+        if typeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(Typeface.callout)
+                    .foregroundStyle(Palette.ink)
+                Text("\(String(localized: "Gratis")): \(free)")
+                    .font(Typeface.micro)
+                    .foregroundStyle(Palette.inkFaint)
+                Text("Premium: \(premium)")
+                    .font(Typeface.micro)
+                    .fontWeight(.bold)
+                    .foregroundStyle(Palette.turmeric)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, Space.md)
+            .padding(.vertical, 12)
+            .accessibilityElement(children: .combine)
+        } else {
+            comparisonColumns(title, free: free, premium: premium)
+        }
+    }
+
+    private func comparisonColumns(_ title: String, free: String, premium: String) -> some View {
         HStack(spacing: 0) {
             Text(title)
                 .font(Typeface.callout)
@@ -285,14 +314,14 @@ struct PaywallView: View {
                 Task { await purchase() }
             } label: {
                 if isPurchasing {
-                    ProgressView().tint(Palette.onInk)
+                    ProgressView().tint(Palette.onAccent)
                 } else {
                     Text(hasIntroductoryOffer
                          ? String(localized: "Empezar prueba gratis")
                          : String(localized: "Suscribirme"))
                 }
             }
-            .buttonStyle(InkButtonStyle(fill: Palette.turmeric, fullWidth: true))
+            .buttonStyle(InkButtonStyle(fill: Palette.turmeric, foreground: Palette.onAccent, fullWidth: true))
             .disabled(selected == nil || isPurchasing)
             .opacity(selected == nil ? 0.5 : 1)
 

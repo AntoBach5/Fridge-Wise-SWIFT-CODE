@@ -64,7 +64,7 @@ struct ReviewRow: View {
         }
         .sheet(isPresented: $isReporting) {
             ReportSheet(review: review)
-                .presentationDetents([.height(560)])
+                .presentationDetents([.height(560), .large])
                 .presentationCornerRadius(Radius.sheet)
                 .presentationBackground(Palette.canvas)
                 .presentationDragIndicator(.visible)
@@ -286,7 +286,7 @@ struct CommunityThreadView: View {
         }
         .sheet(isPresented: $isWriting) {
             ReviewComposerSheet(recipe: recipe)
-                .presentationDetents([.height(480)])
+                .presentationDetents([.height(480), .large])
                 .presentationCornerRadius(Radius.sheet)
                 .presentationBackground(Palette.canvas)
                 .presentationDragIndicator(.visible)

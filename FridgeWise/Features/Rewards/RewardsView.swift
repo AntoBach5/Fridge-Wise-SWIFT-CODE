@@ -48,7 +48,7 @@ struct RewardsView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(String(localized: "Lo que")).displayStyle(31)
-            HStack(spacing: 9) {
+            FlowLayout(spacing: 9) {
                 Text(String(localized: "ganaste"))
                     .font(Typeface.displayItalic(31))
                     .foregroundStyle(Palette.ink)
@@ -388,14 +388,15 @@ struct RewardCard: View {
             }
             .buttonStyle(InkButtonStyle(
                 fill: canAfford ? reward.accent.color : Palette.canvasSunken,
-                foreground: canAfford ? Palette.onInk : Palette.inkFaint,
+                foreground: canAfford ? Palette.onAccent : Palette.inkFaint,
                 verticalPadding: 10,
                 fullWidth: true
             ))
             .disabled(!canAfford)
         }
         .padding(Space.md)
-        .frame(width: 212, height: 232, alignment: .topLeading)
+        .frame(width: 212, alignment: .topLeading)
+        .frame(minHeight: 232, alignment: .topLeading)
         .background { RoundedRectangle.soft(Radius.card).fill(Palette.surface) }
         .overlay {
             RoundedRectangle.soft(Radius.card)

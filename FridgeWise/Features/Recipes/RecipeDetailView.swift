@@ -23,12 +23,10 @@ struct RecipeDetailView: View {
     private let fallback: Recipe
 
     @Environment(\.app) private var app
-    @Environment(\.dismiss) private var dismiss
 
     @State private var showsCookMode = false
     @State private var isWritingReview = false
     @State private var isConfirmingPublish = false
-    @State private var isConfirmingPublishFinal = false
     @State private var showsAgreement = false
     @State private var publishError: String?
 
@@ -57,7 +55,7 @@ struct RecipeDetailView: View {
                 // Una receta generada es privada: se armó contra la despensa de
                 // una persona concreta, así que no admite comentarios de nadie
                 // más. En su lugar se ofrece publicarla, y ahí sí se abre.
-                if recipe.source == .generated {
+                if canPublish {
                     publishSection
                 } else {
                     communitySection
@@ -74,15 +72,18 @@ struct RecipeDetailView: View {
         // Abrir una receta la archiva. Es lo que hace que una generada siga
         // existiendo mañana, y lo que alimenta "Vistas hace poco".
         .task { app.noteViewed(recipe) }
-        .toolbar(.hidden, for: .navigationBar)
-        .overlay(alignment: .top) { floatingNav }
+        // Barra de navegación del sistema (botón Atrás incluido) sobre la
+        // imagen: transparente, sin título. En iOS 26 los botones son cristal.
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .toolbar { toolbarContent }
         .safeAreaInset(edge: .bottom) { actionBar }
         .fullScreenCover(isPresented: $showsCookMode) {
             CookModeView(recipe: recipe)
         }
         .sheet(isPresented: $isWritingReview) {
             ReviewComposerSheet(recipe: recipe)
-                .presentationDetents([.height(480)])
+                .presentationDetents([.height(480), .large])
                 .presentationCornerRadius(Radius.sheet)
                 .presentationBackground(Palette.canvas)
                 .presentationDragIndicator(.visible)
@@ -95,41 +96,31 @@ struct RecipeDetailView: View {
                         acceptedAt: .now
                     )
                     showsAgreement = false
-                    isConfirmingPublishFinal = true
+                    publish()
                 },
                 onDecline: { showsAgreement = false }
             )
-            .presentationDetents([.height(520)])
+            .presentationDetents([.height(520), .large])
             .presentationCornerRadius(Radius.sheet)
             .presentationBackground(Palette.canvas)
             .interactiveDismissDisabled()
         }
-        // Doble confirmación: publicar es irreversible desde la app y lleva el
-        // nombre del usuario. Un solo toque no alcanza para eso.
+        // Una sola confirmación, con las consecuencias a la vista.
         .confirmationDialog(
             String(localized: "¿Publicar «\(recipe.title)»?"),
             isPresented: $isConfirmingPublish,
             titleVisibility: .visible
         ) {
-            Button(String(localized: "Continuar")) {
+            Button(String(localized: "Publicar")) {
                 if app.profile.agreement.needsAcceptance {
                     showsAgreement = true
                 } else {
-                    isConfirmingPublishFinal = true
+                    publish()
                 }
             }
             Button(String(localized: "Cancelar"), role: .cancel) {}
         } message: {
-            Text(String(localized: "Cualquier persona podrá verla, guardarla y comentarla. Se publicará con tu nombre y pasará por moderación."))
-        }
-        .alert(
-            String(localized: "Última confirmación"),
-            isPresented: $isConfirmingPublishFinal
-        ) {
-            Button(String(localized: "Publicar")) { publish() }
-            Button(String(localized: "Ahora no"), role: .cancel) {}
-        } message: {
-            Text(String(localized: "Una vez publicada aparecerá en el feed de la comunidad. Para retirarla tendrás que escribir a soporte."))
+            Text(String(localized: "Cualquier persona podrá verla, guardarla y comentarla. Se publicará con tu nombre y pasará por moderación. Para retirarla tendrás que escribir a soporte."))
         }
         .alert(
             String(localized: "No se ha publicado"),
@@ -144,7 +135,12 @@ struct RecipeDetailView: View {
         }
     }
 
+    /// Solo las recetas generadas para ti se pueden publicar. Una receta que ya
+    /// es de la comunidad nunca ofrece publicarse otra vez.
+    private var canPublish: Bool { recipe.source == .generated }
+
     private func publish() {
+        guard canPublish else { return }
         if case .rejected(let reason) = app.publishToCommunity(recipe) {
             publishError = reason
         }
@@ -195,61 +191,33 @@ struct RecipeDetailView: View {
         .frame(height: heroHeight)
     }
 
-    // MARK: - Navegación flotante
+    // MARK: - Barra de navegación
 
-    private var floatingNav: some View {
-        HStack {
-            circleButton("chevron.left", label: String(localized: "Volver")) { dismiss() }
-            Spacer()
-            circleButton(
-                app.isSaved(recipe) ? "bookmark.fill" : "bookmark",
-                label: app.isSaved(recipe)
-                    ? String(localized: "Quitar de guardadas")
-                    : String(localized: "Guardar receta"),
-                tint: app.isSaved(recipe) ? Palette.clay : Palette.ink
-            ) {
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItemGroup(placement: .topBarTrailing) {
+            Button {
+                Haptics.select()
                 app.toggleSave(recipe)
+            } label: {
+                Image(systemName: app.isSaved(recipe) ? "bookmark.fill" : "bookmark")
             }
+            .accessibilityLabel(app.isSaved(recipe)
+                ? String(localized: "Quitar de guardadas")
+                : String(localized: "Guardar receta"))
+
             ShareLink(item: shareText) {
                 Image(systemName: "square.and.arrow.up")
-                    .font(Typeface.scaled(14, weight: .medium))
-                    .foregroundStyle(Palette.ink)
-                    .frame(width: 38, height: 38)
-                    .liquidGlass(in: Circle(), role: .control, interactive: true, shadow: false)
-                    .hitTarget(size: 38)
             }
             .accessibilityLabel(String(localized: "Compartir"))
             .simultaneousGesture(TapGesture().onEnded {
                 app.ledger.award(.recipeShared, note: recipe.title)
             })
         }
-        .padding(.horizontal, Space.md)
-        .padding(.top, Space.xxxl)
     }
 
     private var shareText: String {
         String(localized: "\(recipe.title) — \(recipe.minutes) min, \(recipe.calories) kcal por porción. Vía Fridge Wise.")
-    }
-
-    private func circleButton(
-        _ icon: String,
-        label: String,
-        tint: Color = Palette.ink,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button {
-            Haptics.select()
-            action()
-        } label: {
-            Image(systemName: icon)
-                .font(Typeface.scaled(14, weight: .medium))
-                .foregroundStyle(tint)
-                .frame(width: 38, height: 38)
-                .liquidGlass(in: Circle(), role: .control, interactive: true, shadow: false)
-                .hitTarget(size: 38)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(label)
     }
 
     // MARK: - Métricas
@@ -504,7 +472,7 @@ struct RecipeDetailView: View {
 
                 Spacer(minLength: 0)
 
-                Text(String(localized: "A To Buy"))
+                Text(String(localized: "A la compra"))
                     .font(Typeface.micro)
                     .fontWeight(.bold)
                     .foregroundStyle(Palette.turmeric)
@@ -548,7 +516,7 @@ struct RecipeDetailView: View {
             Text("\(step.order)")
                 .font(Typeface.scaled(19, weight: .regular, design: .serif))
                 .foregroundStyle(recipe.accent.color)
-                .frame(width: 26, alignment: .leading)
+                .frame(minWidth: 26, alignment: .leading)
                 .padding(.top, 1)
 
             VStack(alignment: .leading, spacing: Space.xs) {
@@ -707,29 +675,41 @@ struct RecipeDetailView: View {
 
     // MARK: - Barra de acciones
 
+    /// La acción principal de la pantalla es cocinar: va en el color de acción
+    /// de la marca (el mismo del botón de escanear), más grande y con icono de
+    /// "play". Planificar es la secundaria y ahora dice lo que hace.
     private var actionBar: some View {
-        HStack(spacing: Space.xs) {
+        HStack(spacing: Space.sm) {
             Button {
+                Haptics.select()
                 app.planToCook(recipe, on: Date())
             } label: {
-                Image(systemName: "calendar.badge.plus")
-                    .font(Typeface.scaled(15, weight: .medium))
-                    .frame(width: 48, height: 48)
+                VStack(spacing: 3) {
+                    Image(systemName: "calendar.badge.plus")
+                        .font(Typeface.scaled(18, weight: .medium))
+                    Text(String(localized: "Planificar"))
+                        .font(Typeface.micro)
+                        .fontWeight(.semibold)
+                }
+                .frame(minWidth: 64, minHeight: 44)
             }
             .buttonStyle(QuietButtonStyle())
-            .accessibilityLabel(String(localized: "Planificar para cocinar"))
+            .accessibilityHint(String(localized: "Añade la receta a Por cocinar, para hoy"))
 
             Button {
                 Haptics.commit()
                 showsCookMode = true
             } label: {
-                HStack(spacing: 7) {
-                    Image(systemName: "flame.fill")
-                        .font(Typeface.scaled(13, weight: .semibold))
-                    Text(String(localized: "Empezar a cocinar"))
-                }
+                Label(String(localized: "Empezar a cocinar"), systemImage: "play.fill")
+                    .font(Typeface.headline)
+                    .frame(minHeight: 44)
             }
-            .buttonStyle(InkButtonStyle(fullWidth: true))
+            .buttonStyle(InkButtonStyle(
+                fill: Palette.tomato,
+                foreground: Palette.onAccent,
+                verticalPadding: 10,
+                fullWidth: true
+            ))
         }
         .padding(.horizontal, Space.screen)
         .padding(.top, Space.sm)

@@ -152,7 +152,7 @@ struct ScanReviewSheet: View {
                     } label: {
                         Image(systemName: "checkmark")
                             .font(Typeface.scaled(12, weight: .bold))
-                            .foregroundStyle(Palette.onInk)
+                            .foregroundStyle(Palette.onAccent)
                             .frame(width: 32, height: 32)
                             .hitTarget(size: 32)
                             .background { Circle().fill(Palette.basil) }

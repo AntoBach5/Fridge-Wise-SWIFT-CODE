@@ -38,6 +38,9 @@ struct MonthCalendar: View {
             grid
         }
         .onAppear { anchor = startOfMonth(for: selection) }
+        // Cuadrícula de siete columnas: como el calendario del sistema, no
+        // crece con los tamaños de accesibilidad.
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
     }
 
     // MARK: - Cabecera

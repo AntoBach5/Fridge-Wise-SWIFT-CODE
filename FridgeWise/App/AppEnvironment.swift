@@ -531,7 +531,7 @@ final class AppEnvironment {
         guard added > 0 else { return }
         Haptics.commit()
         showToast(ToastPayload(
-            message: String(localized: "\(added) en To Buy"),
+            message: String(localized: "\(added) en Por comprar"),
             detail: recipe.title,
             systemImage: "basket.fill", accent: .turmeric
         ))
@@ -540,7 +540,7 @@ final class AppEnvironment {
 
     func planToCook(_ recipe: Recipe, on date: Date? = nil) {
         guard !listItems.contains(where: { $0.kind == .toCook && $0.recipeID == recipe.id && !$0.isDone }) else {
-            showToast(ToastPayload(message: String(localized: "Ya está en To Cook"),
+            showToast(ToastPayload(message: String(localized: "Ya está en Por cocinar"),
                                    systemImage: "frying.pan.fill", accent: .basil))
             return
         }

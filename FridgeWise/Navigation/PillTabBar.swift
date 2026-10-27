@@ -104,7 +104,7 @@ struct PillTabBar: View {
 
                 Image(systemName: "viewfinder")
                     .font(Typeface.scaled(19, weight: .medium))
-                    .foregroundStyle(Palette.onInk)
+                    .foregroundStyle(Palette.onAccent)
             }
             .frame(width: 54, height: 54)
             .liquidGlass(in: Circle(), tint: Palette.tomato)
@@ -155,6 +155,46 @@ struct ScrollOffsetKey: PreferenceKey {
         value = nextValue()
     }
 }
+
+/// Lo mismo para pantallas que son una `List`: ahí no hay una vista que se
+/// quede midiendo la posición, así que se escucha el scroll del propio
+/// contenedor (iOS 18+; en iOS 17 la pill simplemente no se atenúa).
+extension View {
+    @ViewBuilder
+    func readsListScrollDirection(into binding: Binding<Bool>) -> some View {
+        #if compiler(>=6.0)
+        if #available(iOS 18.0, *) {
+            modifier(ListScrollDirectionReader(isScrollingDown: binding))
+        } else {
+            self
+        }
+        #else
+        self
+        #endif
+    }
+}
+
+#if compiler(>=6.0)
+@available(iOS 18.0, *)
+private struct ListScrollDirectionReader: ViewModifier {
+    @Binding var isScrollingDown: Bool
+    @State private var lastOffset: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content.onScrollGeometryChange(for: CGFloat.self) { geometry in
+            geometry.contentOffset.y
+        } action: { _, offset in
+            let delta = offset - lastOffset
+            guard abs(delta) > 6 else { return }
+            let goingDown = delta > 0
+            if goingDown != isScrollingDown {
+                withAnimation(Motion.standard) { isScrollingDown = goingDown }
+            }
+            lastOffset = offset
+        }
+    }
+}
+#endif
 
 extension View {
     func readsScrollDirection(into binding: Binding<Bool>) -> some View {

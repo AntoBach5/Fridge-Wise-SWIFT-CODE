@@ -156,7 +156,7 @@ struct RewardCatalogView: View {
                 }
                 .buttonStyle(InkButtonStyle(
                     fill: canAfford ? reward.accent.color : Palette.canvasSunken,
-                    foreground: canAfford ? Palette.onInk : Palette.inkFaint,
+                    foreground: canAfford ? Palette.onAccent : Palette.inkFaint,
                     horizontalPadding: 0,
                     verticalPadding: 0
                 ))

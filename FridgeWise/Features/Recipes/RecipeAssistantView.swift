@@ -358,7 +358,7 @@ struct RecipeAssistantView: View {
             } label: {
                 Image(systemName: "arrow.up")
                     .font(Typeface.scaled(13, weight: .bold))
-                    .foregroundStyle(Palette.onInk)
+                    .foregroundStyle(Palette.onAccent)
                     .frame(width: 32, height: 32)
                     .background { Circle().fill(canSend ? Palette.plum : Palette.inkFaint) }
                     .hitTarget(size: 32)

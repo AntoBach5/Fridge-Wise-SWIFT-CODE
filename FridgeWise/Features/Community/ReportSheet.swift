@@ -168,7 +168,7 @@ struct ReportSheet: View {
                 }
                 dismiss()
             }
-            .buttonStyle(InkButtonStyle(fill: Palette.tomato, fullWidth: true))
+            .buttonStyle(InkButtonStyle(fill: Palette.tomato, foreground: Palette.onAccent, fullWidth: true))
             .disabled(reason == nil)
             .opacity(reason == nil ? 0.45 : 1)
 

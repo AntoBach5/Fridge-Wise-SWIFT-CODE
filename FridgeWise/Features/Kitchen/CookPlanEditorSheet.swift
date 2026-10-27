@@ -223,7 +223,7 @@ struct CookPlanEditorSheet: View {
                     .monospacedDigit()
                     .opacity(0.75)
             }
-            .foregroundStyle(isOn ? Palette.onInk : Palette.inkSoft)
+            .foregroundStyle(isOn ? Palette.onAccent : Palette.inkSoft)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
             .modifier(SuggestionGlass(isOn: isOn))
@@ -256,7 +256,7 @@ struct CookPlanEditorSheet: View {
                 app.reschedulePlan(plan, to: day, remindAt: wantsReminder ? remindsAt : nil)
                 dismiss()
             }
-            .buttonStyle(InkButtonStyle(fill: Palette.basil, fullWidth: true))
+            .buttonStyle(InkButtonStyle(fill: Palette.basil, foreground: Palette.onAccent, fullWidth: true))
             .disabled(!hasChanges)
             .opacity(hasChanges ? 1 : 0.45)
 

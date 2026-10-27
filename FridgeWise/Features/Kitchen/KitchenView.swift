@@ -25,33 +25,40 @@ struct KitchenView: View {
     @State private var editingIngredient: IngredientEditorSheet.Target?
     @State private var editingPlan: CookPlan?
 
+    /// Tamaño del orbe de categoría y ancho de su etiqueta: crecen con el
+    /// texto para que la etiqueta no se corte en tamaños grandes.
+    @ScaledMetric(relativeTo: .caption2) private var orbSize: CGFloat = 52
+    @ScaledMetric(relativeTo: .caption2) private var orbLabelWidth: CGFloat = 66
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: Space.xl) {
-                header
-                hero
-                pantryConstellation
-                weekSection
-                insightCard
-                scanPrompt
+        // `List` (estilo plano) para poder usar `swipeActions` del sistema en
+        // las filas de planes y de "Usar pronto". Los bloques de contenido son
+        // filas libres, sin fondo ni separador, con los márgenes de siempre.
+        List {
+            header.freeFormListRow(top: Space.xs, bottom: Space.xl / 2)
+            hero.freeFormListRow(top: Space.xl / 2, bottom: Space.xl / 2)
+            pantryConstellation.freeFormListRow(top: Space.xl / 2, bottom: Space.xl / 2)
+            weekSection.freeFormListRow(top: Space.xl / 2, bottom: Space.sm)
+            dayPlans
+            insightCard.freeFormListRow(top: Space.xl / 2, bottom: Space.xl / 2)
+            scanPrompt.freeFormListRow(top: Space.xl / 2, bottom: Space.xl / 2)
 
-                if !app.expiringSoon.isEmpty {
-                    rescueSection
-                }
-
-                rhythmCard
-
-                if !app.profile.isPremium {
-                    planMeter
-                }
+            if !app.expiringSoon.isEmpty {
+                rescueSection
             }
-            .padding(.top, Space.xs)
-            .padding(.bottom, Space.tabBarInset)
-            .readsScrollDirection(into: $isTabBarDimmed)
+
+            rhythmCard.freeFormListRow(top: Space.xl / 2, bottom: Space.xl / 2)
+
+            if !app.profile.isPremium {
+                planMeter.freeFormListRow(top: Space.xl / 2, bottom: Space.xl / 2)
+            }
         }
-        .coordinateSpace(name: "scroll")
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .contentMargins(.bottom, Space.tabBarInset, for: .scrollContent)
         .scrollIndicators(.hidden)
-        .editorialScrollFeel()
+        .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
+        .readsListScrollDirection(into: $isTabBarDimmed)
         .canvasBackground()
         .toolbar(.hidden, for: .navigationBar)
         .sheet(isPresented: $isPickingRecipe) {
@@ -133,11 +140,9 @@ struct KitchenView: View {
             greetingLine
                 .tracking(-0.6)
                 .foregroundStyle(Palette.ink)
-                .lineLimit(2)
-                .minimumScaleFactor(0.72)
                 .fixedSize(horizontal: false, vertical: true)
 
-            HStack(spacing: 8) {
+            FlowLayout(spacing: 8) {
                 Text(String(localized: "¿Qué"))
                     .displayStyle(29)
                 Text(String(localized: "cocinamos"))
@@ -147,8 +152,6 @@ struct KitchenView: View {
                 Text(String(localized: "hoy?"))
                     .displayStyle(29)
             }
-            .lineLimit(1)
-            .minimumScaleFactor(0.8)
             .padding(.bottom, Space.xxs)
         }
         .screenPadding()
@@ -231,11 +234,11 @@ struct KitchenView: View {
                         .font(Typeface.scaled(15, weight: .medium))
                         .foregroundStyle(Palette.inkSoft)
                 }
-                .frame(width: 52, height: 52)
+                .frame(width: orbSize, height: orbSize)
 
                 Text(String(localized: "Añadir"))
                     .eyebrow()
-                    .frame(width: 66)
+                    .frame(width: orbLabelWidth)
                     .multilineTextAlignment(.center)
             }
         }
@@ -251,15 +254,15 @@ struct KitchenView: View {
 
                 Text("\(count)")
                     .font(Typeface.scaled(17, weight: .medium, design: .serif))
-                    .foregroundStyle(Palette.onInk)
+                    .foregroundStyle(Palette.onAccent)
                     .contentTransition(.numericText(value: Double(count)))
             }
-            .frame(width: 52, height: 52)
+            .frame(width: orbSize, height: orbSize)
             .shadow(color: category.accent.color.opacity(0.25), radius: 10, x: 0, y: 5)
 
             Text(category.title)
                 .eyebrow()
-                .frame(width: 66)
+                .frame(width: orbLabelWidth)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
         }
@@ -313,75 +316,69 @@ struct KitchenView: View {
                 WeekStrip(days: weekMarkers, selection: $selectedDay)
                     .screenPadding()
             }
-
-            dayPlans
         }
     }
 
     // MARK: - Planes del día
 
+    /// Filas de la lista (varias): cada plan es una tarjeta con las acciones
+    /// de deslizar del sistema, y debajo el atajo para agendar.
     @ViewBuilder
     private var dayPlans: some View {
         let plans = app.cookPlans(on: selectedDay)
 
-        VStack(alignment: .leading, spacing: Space.xs) {
-            if plans.isEmpty {
-                Text(Calendar.current.isDateInToday(selectedDay)
-                     ? String(localized: "Hoy no tienes nada agendado.")
-                     : String(localized: "Sin planes para ese día."))
-                    .font(Typeface.callout)
-                    .foregroundStyle(Palette.inkFaint)
-            } else {
-                VStack(spacing: 0) {
-                    ForEach(Array(plans.enumerated()), id: \.element.id) { index, plan in
-                        SwipeableRow(onDelete: { app.removePlan(plan) }) {
-                            planRow(plan)
-                        }
-                        if index < plans.count - 1 {
-                            Hairline(inset: 34)
-                        }
+        if plans.isEmpty {
+            Text(Calendar.current.isDateInToday(selectedDay)
+                 ? String(localized: "Hoy no tienes nada agendado.")
+                 : String(localized: "Sin planes para ese día."))
+                .font(Typeface.callout)
+                .foregroundStyle(Palette.inkSoft)
+                .screenPadding()
+                .freeFormListRow(top: Space.xxs, bottom: Space.xxs)
+        } else {
+            ForEach(plans, id: \.id) { plan in
+                Button {
+                    openEditor(for: plan)
+                } label: {
+                    planRow(plan)
+                }
+                .buttonStyle(.pressableCard)
+                .accessibilityHint(String(localized: "Toca para cambiar el día o el recordatorio"))
+                .cardListRow()
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    Button(role: .destructive) {
+                        app.removePlan(plan)
+                    } label: {
+                        Label(String(localized: "Quitar"), systemImage: "trash")
                     }
+                    .tint(Palette.tomato)
                 }
-                .padding(.vertical, Space.xxs)
-                .background { RoundedRectangle.soft(Radius.card).fill(Palette.surface) }
-                .overlay {
-                    RoundedRectangle.soft(Radius.card)
-                        .strokeBorder(Palette.hairline, lineWidth: Stroke.hairline)
-                }
-                .clipShape(RoundedRectangle.soft(Radius.card))
             }
-
-            Button {
-                Haptics.select()
-                isPickingRecipe = true
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "calendar.badge.plus")
-                        .font(Typeface.scaled(11, weight: .semibold))
-                    Text(String(localized: "Agendar una receta"))
-                        .font(Typeface.micro)
-                        .fontWeight(.semibold)
-                }
-                .foregroundStyle(Palette.basil)
-                .padding(.vertical, 6)
-                .hitTarget(vertical: 8)
-            }
-            .buttonStyle(.plain)
         }
+
+        Button {
+            Haptics.select()
+            isPickingRecipe = true
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "calendar.badge.plus")
+                    .font(Typeface.scaled(11, weight: .semibold))
+                Text(String(localized: "Agendar una receta"))
+                    .font(Typeface.micro)
+                    .fontWeight(.semibold)
+            }
+            .foregroundStyle(Palette.basil)
+            .padding(.vertical, 6)
+            .hitTarget(vertical: 8)
+        }
+        .buttonStyle(.plain)
         .screenPadding()
-        .motion(Motion.standard, value: plans.count)
+        .freeFormListRow(top: Space.xxs, bottom: Space.xxs)
     }
 
-    /// Tocar la fila abre el editor del plan. Es el sitio donde el usuario se
-    /// da cuenta de que lo agendó para el día equivocado o de que el aviso le
-    /// queda tarde — y por tanto es desde donde tiene que poder arreglarlo,
-    /// sin borrar el plan y volver a buscar la receta entre cincuenta.
-    ///
-    /// El toque es un `onTapGesture` y no un `Button` por una razón concreta:
-    /// la fila va dentro de un `SwipeableRow`, y un botón que ocupa la fila
-    /// entera gana la prioridad del gesto y se come el arrastre. Con un tap
-    /// (que exige cero movimiento) y el drag del contenedor conviven: tocar
-    /// abre, deslizar borra, y el scroll vertical sigue siendo del scroll view.
+    /// Contenido de la tarjeta de un plan. El toque lo gestiona el `Button`
+    /// que lo envuelve; antes era un gesto a mano para convivir con el swipe
+    /// propio, y ya no hace falta.
     private func planRow(_ plan: CookPlan) -> some View {
         HStack(spacing: Space.sm) {
             AccentDot(color: Palette.basil, size: 8, filled: true)
@@ -418,13 +415,8 @@ struct KitchenView: View {
         }
         .padding(.horizontal, Space.md)
         .padding(.vertical, 10)
-        .background(Palette.surface)
-        .contentShape(Rectangle())
-        .onTapGesture { openEditor(for: plan) }
+        .cardSurface()
         .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isButton)
-        .accessibilityHint(String(localized: "Toca para cambiar el día o el recordatorio"))
-        .accessibilityAction { openEditor(for: plan) }
     }
 
     private func openEditor(for plan: CookPlan) {
@@ -568,7 +560,7 @@ struct KitchenView: View {
                 }
                 .padding(Space.lg)
             }
-            .frame(height: 172)
+            .frame(minHeight: 172)
             .overlay {
                 RoundedRectangle.soft(Radius.lg)
                     .strokeBorder(Palette.hairline, lineWidth: Stroke.hairline)
@@ -581,62 +573,56 @@ struct KitchenView: View {
 
     // MARK: - Rescate
 
+    @ViewBuilder
     private var rescueSection: some View {
-        VStack(alignment: .leading, spacing: Space.sm) {
-            SectionHeader(title: String(localized: "Usar pronto"), accent: Palette.tomato) {
-                HStack(spacing: Space.xs) {
-                    Text("\(app.expiringSoon.count)")
-                        .font(Typeface.percentage)
+        SectionHeader(title: String(localized: "Usar pronto"), accent: Palette.tomato) {
+            HStack(spacing: Space.xs) {
+                Text("\(app.expiringSoon.count)")
+                    .font(Typeface.percentage)
+                    .foregroundStyle(Palette.tomato)
+
+                Button {
+                    Haptics.select()
+                    editingIngredient = .new
+                } label: {
+                    Image(systemName: "plus")
+                        .font(Typeface.scaled(11, weight: .bold))
                         .foregroundStyle(Palette.tomato)
-
-                    Button {
-                        Haptics.select()
-                        editingIngredient = .new
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(Typeface.scaled(11, weight: .bold))
-                            .foregroundStyle(Palette.tomato)
-                            .frame(width: 26, height: 26)
-                            .background { Circle().fill(Palette.tomato.opacity(0.12)) }
-                            .frame(width: 44, height: 44, alignment: .trailing)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(String(localized: "Añadir un producto"))
+                        .frame(width: 26, height: 26)
+                        .background { Circle().fill(Palette.tomato.opacity(0.12)) }
+                        .frame(width: 44, height: 44, alignment: .trailing)
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel(String(localized: "Añadir un producto"))
             }
-            .screenPadding()
+        }
+        .screenPadding()
+        .freeFormListRow(top: Space.xl / 2, bottom: Space.xxs)
 
-            VStack(spacing: 0) {
-                ForEach(Array(app.expiringSoon.prefix(4).enumerated()), id: \.element.id) { index, item in
-                    // Deslizar borra el producto de la despensa. Esta lista es
-                    // justo donde el usuario descubre que ya se comió o tiró
-                    // algo, y hasta ahora el único camino era entrar al editor
-                    // y buscar el botón de borrar dentro.
-                    SwipeableRow(onDelete: { app.removeIngredient(item) }) {
-                        expiringRow(item)
-                    }
-                    if index < min(app.expiringSoon.count, 4) - 1 {
-                        Hairline(inset: 34)
-                    }
+        // Deslizar borra el producto de la despensa (`swipeActions`): esta
+        // lista es donde la persona descubre que ya se comió o tiró algo.
+        ForEach(app.expiringSoon.prefix(4), id: \.id) { item in
+            Button {
+                editingIngredient = .existing(item)
+            } label: {
+                expiringRow(item)
+            }
+            .buttonStyle(.pressableCard)
+            .accessibilityHint(String(localized: "Toca para corregir cantidad o fecha, o desliza para borrarlo"))
+            .cardListRow()
+            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                Button(role: .destructive) {
+                    app.removeIngredient(item)
+                } label: {
+                    Label(String(localized: "Borrar"), systemImage: "trash")
                 }
+                .tint(Palette.tomato)
             }
-            .padding(.vertical, Space.xxs)
-            .background {
-                RoundedRectangle.soft(Radius.card).fill(Palette.surface)
-            }
-            .overlay {
-                RoundedRectangle.soft(Radius.card)
-                    .strokeBorder(Palette.hairline, lineWidth: Stroke.hairline)
-            }
-            .clipShape(RoundedRectangle.soft(Radius.card))
-            .screenPadding()
         }
     }
 
-    /// Tocar la fila abre el editor. Es donde el usuario se da cuenta de que la
-    /// fecha está mal — que es justo cuando tiene que poder arreglarla.
-    /// Deslizar la borra. Igual que en `planRow`, el toque es un gesto y no un
-    /// `Button`: un botón de fila completa le robaría el arrastre al swipe.
+    /// Contenido de la tarjeta de un producto por vencer. El toque lo gestiona
+    /// el `Button` que lo envuelve.
     private func expiringRow(_ item: Ingredient) -> some View {
         HStack(spacing: Space.sm) {
             AccentDot(color: item.freshness.accent.color, size: 8)
@@ -666,13 +652,8 @@ struct KitchenView: View {
         }
         .padding(.horizontal, Space.md)
         .padding(.vertical, 11)
-        .background(Palette.surface)
-        .contentShape(Rectangle())
-        .onTapGesture { editingIngredient = .existing(item) }
+        .cardSurface()
         .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isButton)
-        .accessibilityHint(String(localized: "Toca para corregir cantidad o fecha, o desliza para borrarlo"))
-        .accessibilityAction { editingIngredient = .existing(item) }
     }
 
     // MARK: - Ritmo

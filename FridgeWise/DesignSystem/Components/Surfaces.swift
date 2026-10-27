@@ -83,6 +83,45 @@ extension SectionHeader where Trailing == EmptyView {
     }
 }
 
+// MARK: - Filas libres dentro de una List
+
+extension View {
+    /// Fila de contenido propio dentro de una `List`: sin fondo, sin
+    /// separador y con los márgenes que se le indiquen. Permite que una
+    /// pantalla entera sea una `List` (y use `swipeActions` del sistema)
+    /// sin renunciar a sus cabeceras y tarjetas.
+    func freeFormListRow(
+        horizontal: CGFloat = 0,
+        top: CGFloat = 0,
+        bottom: CGFloat = 0
+    ) -> some View {
+        self
+            .listRowInsets(EdgeInsets(top: top, leading: horizontal,
+                                      bottom: bottom, trailing: horizontal))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+    }
+}
+
+extension View {
+    /// Fila de `List` que es una tarjeta suelta (márgenes de pantalla a los
+    /// lados, un poco de aire arriba y abajo).
+    func cardListRow() -> some View {
+        self.freeFormListRow(horizontal: Space.screen, top: 4, bottom: 4)
+    }
+
+    /// Superficie de tarjeta: papel, hairline y esquinas continuas.
+    func cardSurface(radius: CGFloat = Radius.card) -> some View {
+        self
+            .background { RoundedRectangle.soft(radius).fill(Palette.surface) }
+            .overlay {
+                RoundedRectangle.soft(radius)
+                    .strokeBorder(Palette.hairline, lineWidth: Stroke.hairline)
+            }
+            .contentShape(RoundedRectangle.soft(radius))
+    }
+}
+
 // MARK: - Chips
 
 /// Chip informativo. Tres densidades según cuánta jerarquía necesite.
@@ -123,7 +162,7 @@ struct InfoChip: View {
         switch weight {
         case .quiet:  Palette.inkSoft
         case .tinted: accent
-        case .solid:  Palette.onInk
+        case .solid:  Palette.onAccent
         }
     }
 
